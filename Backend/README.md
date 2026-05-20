@@ -80,16 +80,15 @@ Tim AI diharapkan membangun model klasifikasi teks / NLP dengan spesifikasi beri
 
 ---
 
-## 3. Deploy ke Render (Production)
+## 3. Deploy ke Vercel (Production)
 
-Backend siap deploy ke [Render](https://render.com). Ikuti panduan lengkap di **[DEPLOY.md](./DEPLOY.md)**.
+Backend siap deploy ke [Vercel](https://vercel.com). Ikuti panduan lengkap di **[DEPLOY.md](./DEPLOY.md)**.
 
 Ringkasan cepat:
-- Repo monorepo → **Root Directory** di Render: `Backend`
-- File blueprint: `render.yaml` di root repo
+- Repo monorepo → **Root Directory** di Vercel: `Backend`
+- Env: salin dari `.env.vercel` → Vercel Environment Variables
 - Health check: `/api/ping`
-- Set env: `DATABASE_*`, `JWT_SECRET`, `HOST=0.0.0.0`, `NODE_ENV=production`
-- Jangan set `PORT` manual di Render
+- Swagger: `https://<project>.vercel.app/api-docs`
 
 ---
 

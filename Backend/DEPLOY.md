@@ -1,95 +1,99 @@
-# Deploy FinTrack Backend ke Render
+# Deploy FinTrack Backend ke Vercel
 
-Panduan ini membuat Anda siap deploy tanpa mengubah kode lagi. Pastikan repo sudah di-push ke GitHub.
+Panduan untuk **deploy pertama kali**. Backend sudah jalan di lokal; belum perlu khawatir soal Render — langsung ke Vercel saja.
+
+Repo monorepo: di Vercel wajib set **Root Directory** = `Backend`.
+
+---
+
+## Checklist singkat
+
+| # | Langkah | Status |
+|---|---------|--------|
+| 0 | Backend jalan lokal (`npm run dev`) | ✅ biasanya sudah |
+| 1 | Push kode ke GitHub | ⬜ |
+| 2 | Import repo di Vercel | ⬜ |
+| 3 | Isi Environment Variables | ⬜ |
+| 4 | Deploy → tes `/api/ping` | ⬜ |
+
+---
+
+## 0. Push ke GitHub (jika belum)
+
+```bash
+cd /path/ke/capstone-fintrack
+git add .
+git commit -m "chore: siapkan deploy Vercel"
+git push
+```
 
 ---
 
 ## Prasyarat
 
-- [ ] Repo GitHub sudah berisi folder `Backend/` (monorepo `capstone-fintrack`)
-- [ ] Supabase sudah berjalan (tabel `users`, `categories`, `transactions`, `refresh_tokens`)
-- [ ] Kategori default sudah di-seed **sekali** ke DB production: `npm run seed` (dari lokal dengan `.env` yang sama)
+- [ ] Akun [vercel.com](https://vercel.com) (login GitHub)
+- [ ] Supabase aktif — **satu DB** dipakai lokal & production (env sama)
+- [ ] File `Backend/.env.vercel` sudah diisi (copy dari `.env` lokal)
 
 ---
 
-## Opsi A — Blueprint (disarankan)
+## Langkah deploy
 
-1. Login [render.com](https://render.com) → **New +** → **Blueprint**
-2. Connect repository GitHub `capstone-fintrack`
-3. Render membaca `render.yaml` di root repo
-4. Isi variabel yang ditandai **sync: false** saat diminta:
-   - `DATABASE_USER`
-   - `DATABASE_PASSWORD`
-   - `DATABASE_HOST` (contoh: `aws-0-ap-southeast-1.pooler.supabase.com`)
-5. Klik **Apply** → tunggu deploy selesai
+### 1. Import project
 
-`JWT_SECRET` di-generate otomatis oleh Render.
+1. Vercel Dashboard → **Add New** → **Project**
+2. Import repository `capstone-fintrack`
+3. **Root Directory** → klik **Edit** → pilih folder **`Backend`**
+4. Framework Preset: **Other** (bukan Next.js)
+5. Build Command: *(kosongkan)*
+6. Output Directory: *(kosongkan)*
+7. Install Command: `npm install` (default)
 
----
+### 2. Environment Variables
 
-## Opsi B — Web Service manual
-
-| Pengaturan | Nilai |
-|------------|--------|
-| **Root Directory** | `Backend` |
-| **Runtime** | Node |
-| **Build Command** | `npm install` |
-| **Start Command** | `npm start` |
-| **Health Check Path** | `/api/ping` |
-| **Region** | Singapore |
-
-### Environment Variables (wajib)
+Di **Environment Variables**, tambahkan (atau paste dari `.env.vercel`):
 
 | Key | Nilai |
 |-----|--------|
 | `NODE_ENV` | `production` |
-| `HOST` | `0.0.0.0` |
 | `DATABASE_USER` | dari Supabase |
 | `DATABASE_PASSWORD` | dari Supabase |
 | `DATABASE_HOST` | pooler Supabase |
 | `DATABASE_PORT` | `6543` |
 | `DATABASE_NAME` | `postgres` |
-| `JWT_SECRET` | string acak panjang (beda dari lokal) |
+| `JWT_SECRET` | string acak panjang (**beda** dari lokal) |
 
-**Jangan set `PORT` manual** — Render mengisi otomatis.
+**Tidak perlu:** `HOST`, `PORT` — Vercel mengatur otomatis.
 
-### Cara isi Environment Variables di Render
+Cara cepat:
+```bash
+cp .env.vercel.example .env.vercel
+# isi nilai, lalu copy-paste ke Vercel → Environment Variables
+```
 
-1. Di folder `Backend`, buka file **`.env.render`** (sudah disiapkan dari `.env` lokal Anda)
-2. Ganti baris `JWT_SECRET` — klik **Generate** di Render, atau isi string acak panjang (beda dari lokal)
-3. Di Render → **Environment Variables** → klik **Add from .env**
-4. Copy-paste seluruh isi `.env.render` (tanpa baris kosong di awal/akhir)
-5. Simpan → redeploy jika service sudah jalan
+### 3. Deploy
 
-Template kosong untuk referensi: **`.env.render.example`**
+Klik **Deploy** → tunggu build selesai.
+
+URL production: `https://<nama-project>.vercel.app`
 
 ---
 
-## Verifikasi setelah deploy
-
-Ganti `YOUR-SERVICE` dengan nama subdomain Render Anda.
+## Verifikasi
 
 ```bash
-curl https://YOUR-SERVICE.onrender.com/api/ping
-curl https://YOUR-SERVICE.onrender.com/
+curl https://<nama-project>.vercel.app/api/ping
+curl https://<nama-project>.vercel.app/
 ```
 
-Buka di browser:
-
-- Swagger: `https://YOUR-SERVICE.onrender.com/api-docs`
-- Health: `https://YOUR-SERVICE.onrender.com/api/ping`
-
-Di **Logs** Render, pastikan ada:
-
-```text
-[database]: Koneksi ke database PostgreSQL berhasil!
-```
+- Swagger: `https://<nama-project>.vercel.app/api-docs`
+- Logs: Vercel Dashboard → Project → **Logs**
 
 ---
 
 ## Seed kategori (sekali)
 
-Dari mesin lokal (`.env` mengarah ke DB yang sama dengan production):
+Dari lokal (`.env` ke DB yang sama):
 
 ```bash
 cd Backend
@@ -98,11 +102,35 @@ npm run seed
 
 ---
 
-## Catatan production
+## Development lokal
 
-- **Free tier:** cold start ~30–60 detik setelah idle.
-- **RLS Supabase:** aktifkan hanya setelah memahami policy; uji agar koneksi `pg` backend tidak terblokir.
-- **Frontend nanti:** `baseURL` = `https://YOUR-SERVICE.onrender.com/api`
+```bash
+npm run dev
+```
+
+Tetap pakai `.env` dengan `HOST=localhost` dan `PORT=3000`.
+
+---
+
+## Memahami `vercel.json` vs route `/api`
+
+| | Arti |
+|---|------|
+| `"destination": "/api"` di `vercel.json` | Mengarah ke **file** `api/index.js` (entry serverless Vercel). **Hanya aktif saat deploy Vercel**, tidak mempengaruhi `npm run dev`. |
+| Route Express `/api/...` | Prefix API di kode (`app.use('/api', routes)`). Contoh: `/api/ping`, `/api/auth/login`. |
+
+**Lokal (`npm run dev`):** `vercel.json` diabaikan. Buka:
+- `http://localhost:3000/` → welcome
+- `http://localhost:3000/api` → daftar route API
+- `http://localhost:3000/api/ping` → health check
+
+---
+
+## Catatan Vercel
+
+- **Serverless:** cold start pertama bisa lambat (~1–3 detik).
+- **AI mock (background):** klasifikasi async bisa terpotong saat cold start; untuk production penuh pertimbangkan worker terpisah nanti.
+- **Frontend:** `baseURL` = `https://<nama-project>.vercel.app/api`
 
 ---
 
@@ -110,7 +138,6 @@ npm run seed
 
 | Gejala | Solusi |
 |--------|--------|
-| Build gagal "package.json not found" | Set **Root Directory** = `Backend` |
-| Service tidak bisa diakses | Pastikan `HOST=0.0.0.0` |
+| 404 semua route | Pastikan `vercel.json` ada di `Backend/` dan Root Directory = `Backend` |
 | DB connection failed | Cek env Supabase, port `6543`, password benar |
-| Health check gagal | Pastikan path `/api/ping` dan service sudah listen |
+| Build error | Pastikan `api/index.js` dan `src/app.js` ada |

@@ -10,7 +10,8 @@ pnpm-debug.log*
 
 # Environment variables
 .env
-.env.render
+.env.vercel
+.vercel
 .env.local
 .env.development.local
 .env.test.local
@@ -39,3 +40,6 @@ GEMINI.md
 #progress
 progress.md
 developer.md
+DEPLOY.md
+
+.nvmrc
