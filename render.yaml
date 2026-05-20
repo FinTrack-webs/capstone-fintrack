@@ -1,0 +1,34 @@
+# Render Blueprint — FinTrack Backend
+# Repo monorepo: backend ada di folder Backend/
+# Deploy: Dashboard Render → New → Blueprint → pilih repo ini
+# Atau: New Web Service manual dengan Root Directory = Backend
+
+services:
+  - type: web
+    name: fintrack-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: Backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/ping
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: HOST
+        value: 0.0.0.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        value: "6543"
+      - key: DATABASE_NAME
+        value: postgres

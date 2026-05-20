@@ -80,7 +80,20 @@ Tim AI diharapkan membangun model klasifikasi teks / NLP dengan spesifikasi beri
 
 ---
 
-## 3. Pengujian API (API Testing Suite)
+## 3. Deploy ke Render (Production)
+
+Backend siap deploy ke [Render](https://render.com). Ikuti panduan lengkap di **[DEPLOY.md](./DEPLOY.md)**.
+
+Ringkasan cepat:
+- Repo monorepo → **Root Directory** di Render: `Backend`
+- File blueprint: `render.yaml` di root repo
+- Health check: `/api/ping`
+- Set env: `DATABASE_*`, `JWT_SECRET`, `HOST=0.0.0.0`, `NODE_ENV=production`
+- Jangan set `PORT` manual di Render
+
+---
+
+## 4. Pengujian API (API Testing Suite)
 Untuk memastikan stabilitas endpoint, backend ini dilengkapi dengan suite pengujian integrasi menggunakan **Newman (Postman CLI)** yang mencakup 22 requests dengan 34 assertions (100% PASS).
 
 Untuk menjalankan pengujian otomatis:
