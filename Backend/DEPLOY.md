@@ -53,6 +53,16 @@ Panduan ini membuat Anda siap deploy tanpa mengubah kode lagi. Pastikan repo sud
 
 **Jangan set `PORT` manual** — Render mengisi otomatis.
 
+### Cara isi Environment Variables di Render
+
+1. Di folder `Backend`, buka file **`.env.render`** (sudah disiapkan dari `.env` lokal Anda)
+2. Ganti baris `JWT_SECRET` — klik **Generate** di Render, atau isi string acak panjang (beda dari lokal)
+3. Di Render → **Environment Variables** → klik **Add from .env**
+4. Copy-paste seluruh isi `.env.render` (tanpa baris kosong di awal/akhir)
+5. Simpan → redeploy jika service sudah jalan
+
+Template kosong untuk referensi: **`.env.render.example`**
+
 ---
 
 ## Verifikasi setelah deploy
