@@ -1,21 +1,39 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const isVercel = Boolean(process.env.VERCEL);
+const isVercel = Boolean(process.env.VERCEL || process.env.NOW_REGION);
 
-const pool = new Pool({
-  user: process.env.DATABASE_USER,
-  host: process.env.DATABASE_HOST,
-  database: process.env.DATABASE_NAME,
-  password: process.env.DATABASE_PASSWORD,
-  port: process.env.DATABASE_PORT,
+// Konfigurasi pool
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL, 
   ssl: {
     rejectUnauthorized: false,
   },
-  // Serverless: batasi koneksi agar tidak membebani pool Supabase
   max: isVercel ? 1 : 10,
   idleTimeoutMillis: isVercel ? 10000 : 30000,
-});
+};
+
+// Jika DATABASE_URL tidak ada, gunakan parameter individu
+if (!poolConfig.connectionString) {
+  poolConfig.user = process.env.DATABASE_USER;
+  poolConfig.host = process.env.DATABASE_HOST;
+  poolConfig.database = process.env.DATABASE_NAME;
+  poolConfig.password = process.env.DATABASE_PASSWORD;
+  poolConfig.port = process.env.DATABASE_PORT;
+}
+
+const pool = new Pool(poolConfig);
+
+// Validasi konfigurasi database
+const requiredEnv = poolConfig.connectionString 
+  ? [] 
+  : ['DATABASE_USER', 'DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_PASSWORD', 'DATABASE_PORT'];
+
+const missingEnv = requiredEnv.filter(env => !process.env[env]);
+
+if (!poolConfig.connectionString && missingEnv.length > 0) {
+  console.error(`[database]: Konfigurasi database tidak lengkap. Missing: ${missingEnv.join(', ')}`);
+}
 
 // Test koneksi database saat startup
 pool.query('SELECT NOW()', (err, res) => {
