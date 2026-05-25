@@ -121,10 +121,12 @@ const options = {
           type: 'object',
           required: ['amount', 'description', 'date'],
           properties: {
-            category_id: { type: 'integer', nullable: true, description: 'Opsional. Jika tidak diisi, AI Mock akan auto-classify.' },
+            category_id: { type: 'integer', nullable: true, example: 1, description: 'Opsional. Jika tidak diisi, AI akan auto-classify. Isi dengan ID kategori (1=Gaji, 4=Bonus, 5=Makanan, 6=Transportasi, 13=Lainnya).' },
             amount: { type: 'integer', example: 50000 },
             description: { type: 'string', example: 'Beli nasi goreng di warung' },
             date: { type: 'string', format: 'date', example: '2026-05-17' },
+            account_type: { type: 'string', enum: ['personal', 'business'], example: 'personal', description: 'Opsional. Default: personal.' },
+            transaction_type: { type: 'string', enum: ['debit', 'credit'], example: 'debit', description: 'Opsional. Digunakan AI untuk prediksi lebih akurat.' },
           },
         },
 

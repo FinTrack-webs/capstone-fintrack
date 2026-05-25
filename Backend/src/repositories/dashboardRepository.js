@@ -1,9 +1,7 @@
 const db = require('../config/db');
 
 const dashboardRepository = {
-  /**
-   * Total income user
-   */
+  //total income user
   getTotalIncome: async (userId) => {
     const result = await db.query(
       `SELECT COALESCE(SUM(t.amount), 0) AS total_income
@@ -15,9 +13,7 @@ const dashboardRepository = {
     return parseInt(result.rows[0].total_income, 10);
   },
 
-  /**
-   * Total expense user
-   */
+  //total expense user
   getTotalExpense: async (userId) => {
     const result = await db.query(
       `SELECT COALESCE(SUM(t.amount), 0) AS total_expense
@@ -29,9 +25,7 @@ const dashboardRepository = {
     return parseInt(result.rows[0].total_expense, 10);
   },
 
-  /**
-   * Breakdown per kategori
-   */
+  //breakdown per kategori
   getBreakdownByCategory: async (userId) => {
     const result = await db.query(
       `SELECT c.id AS category_id, c.name AS category_name, c.type AS category_type,

@@ -6,9 +6,8 @@ const refreshTokenRepository = require('../repositories/refreshTokenRepository')
 const logger = require('../utils/logger');
 
 const authService = {
-  /**
-   * Register user baru
-   */
+
+  //Register user baru
   register: async (email, password) => {
     // Cek apakah email sudah terdaftar
     const existingUser = await userRepository.findByEmail(email);
@@ -29,9 +28,8 @@ const authService = {
     return user;
   },
 
-  /**
-   * Login user dan generate tokens
-   */
+
+  //Login dan generate tokens
   login: async (email, password) => {
     // Cari user
     const user = await userRepository.findByEmail(email);
@@ -76,9 +74,8 @@ const authService = {
     };
   },
 
-  /**
-   * Refresh access token menggunakan refresh token
-   */
+
+  //Refresh token
   refreshToken: async (refreshToken) => {
     try {
       // Verifikasi JWT validity
@@ -115,9 +112,7 @@ const authService = {
     }
   },
 
-  /**
-   * Logout — Revoke refresh token dari database
-   */
+  //Logout
   logout: async (refreshToken) => {
     const deleted = await refreshTokenRepository.deleteByToken(refreshToken);
     if (!deleted) {
@@ -129,9 +124,7 @@ const authService = {
     return { message: 'Logout berhasil' };
   },
 
-  /**
-   * Logout global — Revoke semua refresh token milik user
-   */
+  //Logout semua
   logoutAll: async (userId) => {
     const count = await refreshTokenRepository.deleteAllByUserId(userId);
     logger.info(`User ${userId} logout global: ${count} token di-revoke`);

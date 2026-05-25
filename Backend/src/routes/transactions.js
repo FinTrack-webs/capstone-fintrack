@@ -3,7 +3,7 @@ const router = express.Router();
 const transactionController = require('../controllers/transactionController');
 const validate = require('../middlewares/validator');
 const auth = require('../middlewares/auth');
-const { createTransactionSchema, updateTransactionSchema } = require('../utils/joiSchemas');
+const { createTransactionSchema, updateTransactionSchema, predictCategorySchema } = require('../utils/joiSchemas');
 
 // Semua route transaksi memerlukan auth
 router.use(auth);
@@ -32,6 +32,63 @@ router.use(auth);
  *                     $ref: '#/components/schemas/Transaction'
  */
 router.get('/', transactionController.getAll);
+
+/**
+ * @swagger
+ * /transactions/predict-only:
+ *   post:
+ *     tags: [Transactions]
+ *     summary: Preview kategori AI tanpa simpan ke database
+ *     description: Panggil FinTrack AI untuk prediksi kategori transaksi. Hasilnya tidak disimpan ke database.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - description
+ *               - transaction_type
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 example: "Grab ke kantor"
+ *               transaction_type:
+ *                 type: string
+ *                 example: "debit"
+ *               account_type:
+ *                 type: string
+ *                 enum: [personal, business]
+ *                 default: personal
+ *     responses:
+ *       200:
+ *         description: Prediksi kategori berhasil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     predicted_category:
+ *                       type: string
+ *                       example: Transportasi
+ *                     confidence_score:
+ *                       type: number
+ *                       example: 0.9731
+ *                     mapped_category:
+ *                       type: string
+ *                       example: Transportasi
+ *       503:
+ *         description: AI service tidak tersedia
+ */
+router.post('/predict-only', validate(predictCategorySchema), transactionController.previewCategory);
 
 /**
  * @swagger

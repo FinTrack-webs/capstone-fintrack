@@ -1,17 +1,6 @@
 const logger = require('../utils/logger');
 const categoryRepository = require('../repositories/categoryRepository');
 
-/**
- * AI Mock Service
- * Simulasi klasifikasi transaksi berdasarkan keyword di deskripsi
- * Pattern: Fire-and-Forget Async (delay 2 detik)
- *
- * Perbaikan:
- * - Fuzzy matching (includes) saat mencocokkan nama kategori dari DB
- * - Fallback ke kategori "Lainnya" jika tidak ada keyword match
- * - Simple in-memory cache untuk daftar kategori (refresh setiap 5 menit)
- */
-
 // Keyword mapping ke kategori (mock)
 const KEYWORD_MAP = [
   { keywords: ['makan', 'resto', 'restaurant', 'warung', 'cafe', 'kopi', 'nasi', 'ayam'], categoryName: 'Makanan' },
@@ -34,9 +23,7 @@ let categoryCache = null;
 let cacheTimestamp = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-/**
- * Ambil daftar kategori dari DB dengan caching sederhana
- */
+//ambil daftar kategori dari DB dengan caching sederhana
 const getCategoriesWithCache = async () => {
   const now = Date.now();
 
@@ -50,20 +37,14 @@ const getCategoriesWithCache = async () => {
   return categoryCache;
 };
 
-/**
- * Fuzzy match: cari kategori dari DB yang namanya mengandung target name
- * Prioritas: exact match > includes match
- */
 const findCategoryByName = (categories, targetName) => {
   const lowerTarget = targetName.toLowerCase();
 
-  // Prioritas 1: Kecocokan (case-insensitive)
   const exactMatch = categories.find(
     (c) => c.name.toLowerCase() === lowerTarget
   );
   if (exactMatch) return exactMatch;
 
-  // Prioritas 2: Mencakup kecocokan (kategori DB mengandung target, atau sebaliknya)
   const includesMatch = categories.find(
     (c) => c.name.toLowerCase().includes(lowerTarget) || lowerTarget.includes(c.name.toLowerCase())
   );
@@ -71,21 +52,22 @@ const findCategoryByName = (categories, targetName) => {
 };
 
 const aiMockService = {
-  /**
-   * Classify transaksi berdasarkan deskripsi (mock)
-   * Input:  { transactionId: "uuid", description: "string" }
-   * Output: { transactionId: "uuid", categoryId: number, confidence: 0.XX }
-   */
+  predictCategory: async () => ({
+    predicted_category: 'Transportasi',
+    confidence_score: 0.95,
+    mapped_name: 'Transportasi',
+  }),
+  
+  isAlive: async () => true,
+
   classify: async (transactionId, description) => {
     logger.info(`[AI Mock] Mulai klasifikasi transaksi: ${transactionId}`);
 
-    // Simulasi delay 2 detik (seolah memanggil AI API)
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const lowerDesc = description.toLowerCase();
     const categories = await getCategoriesWithCache();
 
-    // Cari match keyword
     for (const mapping of KEYWORD_MAP) {
       for (const keyword of mapping.keywords) {
         if (lowerDesc.includes(keyword)) {
@@ -104,7 +86,6 @@ const aiMockService = {
       }
     }
 
-    // Fallback: assign ke kategori "Lainnya" jika tersedia
     const fallbackCategory = findCategoryByName(categories, FALLBACK_CATEGORY_NAME);
 
     if (fallbackCategory) {
@@ -117,7 +98,6 @@ const aiMockService = {
       return result;
     }
 
-    // Jika bahkan "Lainnya" tidak ada di DB
     logger.warn(`[AI Mock] Tidak dapat mengklasifikasi dan fallback tidak tersedia: "${description}"`);
     return {
       transactionId,
@@ -125,10 +105,7 @@ const aiMockService = {
       confidence: 0,
     };
   },
-
-  /**
-   * Invalidate cache secara manual (berguna saat kategori baru ditambah)
-   */
+  
   invalidateCache: () => {
     categoryCache = null;
     cacheTimestamp = 0;

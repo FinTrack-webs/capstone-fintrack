@@ -1,9 +1,4 @@
-/**
- * Joi Validator Middleware Factory
- * Membuat middleware validasi berdasarkan schema Joi yang diberikan
- * @param {Joi.Schema} schema - Schema Joi untuk validasi
- * @param {string} source - Sumber data: 'body', 'params', atau 'query'
- */
+
 const validate = (schema, source = 'body') => {
   return (req, res, next) => {
     const { error, value } = schema.validate(req[source], {

@@ -1,9 +1,8 @@
 const dashboardRepository = require('../repositories/dashboardRepository');
 
 const dashboardService = {
-  /**
-   * Ambil ringkasan dashboard: total income, expense, balance, dan breakdown per kategori
-   */
+
+  //ambil ringkasan dashboard
   getSummary: async (userId) => {
     const [totalIncome, totalExpense, breakdown] = await Promise.all([
       dashboardRepository.getTotalIncome(userId),

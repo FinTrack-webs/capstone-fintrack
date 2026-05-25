@@ -1,25 +1,19 @@
 const db = require('../config/db');
 
 const categoryRepository = {
-  /**
-   * Mengambil semua kategori
-   */
+  //mengambil semua kategori dari database
   findAll: async () => {
     const result = await db.query('SELECT * FROM categories ORDER BY id ASC');
     return result.rows;
   },
-
-  /**
-   * Mencari kategori berdasarkan ID
-   */
+  
+  //Mencari kategori berdasarkan ID
   findById: async (id) => {
     const result = await db.query('SELECT * FROM categories WHERE id = $1', [id]);
     return result.rows[0] || null;
   },
 
-  /**
-   * Membuat kategori baru
-   */
+  //Membuat kategori baru
   create: async (name, type, iconUrl) => {
     const result = await db.query(
       'INSERT INTO categories (name, type, icon_url) VALUES ($1, $2, $3) RETURNING *',
@@ -28,9 +22,7 @@ const categoryRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Update kategori
-   */
+  //Update kategori
   update: async (id, fields) => {
     const setClauses = [];
     const values = [];
@@ -55,9 +47,16 @@ const categoryRepository = {
     return result.rows[0] || null;
   },
 
-  /**
-   * Hapus kategori
-   */
+  //Mencari kategori berdasarkan nama
+  findByName: async (name) => {
+    const result = await db.query(
+      'SELECT id, name, type FROM categories WHERE name = $1 LIMIT 1',
+      [name]
+    );
+    return result.rows[0] || null;
+  },
+
+  //Hapus kategori
   delete: async (id) => {
     const result = await db.query('DELETE FROM categories WHERE id = $1 RETURNING *', [id]);
     return result.rows[0] || null;

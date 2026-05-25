@@ -1,118 +1,105 @@
 const logger = require('../utils/logger');
-const categoryRepository = require('../repositories/categoryRepository');
 
 /**
  * AI Service
- * Menghubungkan backend dengan model AI lokal untuk klasifikasi transaksi.
+ * Menghubungkan backend dengan FinTrack AI API untuk klasifikasi transaksi.
+ * Mendukung dual endpoint: /predict/personal dan /predict/business
  */
 
-const AI_MODEL_URL = process.env.AI_MODEL_URL || 'http://localhost:8000/predict';
-const FALLBACK_CATEGORY_NAME = 'Lainnya';
+// BASE URL dari environment variable
+const FINTRACK_URL = process.env.FINTRACK_API_URL;
 
-// Simple in-memory cache
-let categoryCache = null;
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+// Normalisasi tipe transaksi ke format FinTrack
+const normalizeType = (type) => {
+  const map = {
+    debit: 'debit', credit: 'kredit', kredit: 'kredit',
+    transfer: 'transfer', income: 'kredit', expense: 'debit',
+  };
+  return map[type?.toLowerCase()] ?? 'debit';
+};
+
+// Mapping nama kategori FinTrack → nama kategori di tabel categories
+// Digunakan untuk mencari category_id yang sesuai
+const CATEGORY_MAP = {
+  // Personal
+  'Gaji': 'Gaji',
+  'Hiburan': 'Hiburan',
+  'Makanan & Minuman': 'Makanan',
+  'Belanja Bulanan': 'Belanja',
+  'Tempat Tinggal': 'Tempat Tinggal',
+  'Transportasi': 'Transportasi',
+  'Pembayaran Langganan': 'Utilitas',
+  'Pulsa & Internet': 'Utilitas',
+  'Transfer Teman/Keluarga': 'Lainnya',
+  // Business
+  'Gaji & Karyawan': 'Gaji',
+  'Pembelian Stok': 'Belanja',
+  'Transportasi & Logistik': 'Transportasi',
+  'Software & Langganan': 'Utilitas',
+  'Operasional Kantor': 'Utilitas',
+  'Marketing & Promosi': 'Lainnya',
+  'Modal & Investasi': 'Investasi',
+  'Pajak & Perizinan': 'Lainnya',
+  'Peralatan & Aset': 'Lainnya',
+  'Piutang': 'Lainnya',
+  'Utang & Cicilan': 'Lainnya',
+  'Biaya Bank': 'Lainnya',
+  'Penjualan': 'Freelance',
+  'Lain-lain': 'Lainnya',
+};
 
 /**
- * Ambil daftar kategori dari DB dengan caching sederhana
+ * Prediksi kategori dari FinTrack AI
+ * Return: { predicted_category, confidence_score, mapped_name } atau null jika gagal
  */
-const getCategoriesWithCache = async () => {
-  const now = Date.now();
-
-  if (categoryCache && (now - cacheTimestamp) < CACHE_TTL_MS) {
-    return categoryCache;
+const predictCategory = async (description, transactionType, accountType = 'personal') => {
+  if (!FINTRACK_URL) {
+    logger.warn('[aiService] FINTRACK_API_URL tidak diset');
+    return null;
   }
-
-  logger.debug('[AI] Refreshing category cache dari database...');
-  categoryCache = await categoryRepository.findAll();
-  cacheTimestamp = now;
-  return categoryCache;
+  const endpoint = accountType === 'business' ? '/predict/business' : '/predict/personal';
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(`${FINTRACK_URL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description,
+        transaction_type: normalizeType(transactionType),
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`FinTrack responded ${res.status}`);
+    const data = await res.json();
+    return {
+      predicted_category: data.predicted_category,
+      confidence_score: data.confidence_score,
+      mapped_name: CATEGORY_MAP[data.predicted_category] ?? 'Lainnya',
+    };
+  } catch (err) {
+    logger.error(`[aiService.predictCategory] ${err.message}`);
+    return null; // JANGAN throw — transaksi harus tetap bisa disimpan
+  }
 };
 
 /**
- * Fuzzy match: cari kategori dari DB yang namanya mengandung target name
+ * Health check FinTrack AI API
  */
-const findCategoryByName = (categories, targetName) => {
-  if (!targetName) return null;
-  const lowerTarget = targetName.toLowerCase();
-
-  // Prioritas 1: Exact match
-  const exactMatch = categories.find(
-    (c) => c.name.toLowerCase() === lowerTarget
-  );
-  if (exactMatch) return exactMatch;
-
-  // Prioritas 2: Includes match
-  const includesMatch = categories.find(
-    (c) => c.name.toLowerCase().includes(lowerTarget) || lowerTarget.includes(c.name.toLowerCase())
-  );
-  return includesMatch || null;
+const isAlive = async () => {
+  if (!FINTRACK_URL) return false;
+  try {
+    const res = await fetch(`${FINTRACK_URL}/`, { signal: AbortSignal.timeout(3000) });
+    return res.ok;
+  } catch { return false; }
 };
 
-const aiService = {
-  /**
-   * Classify transaksi dengan memanggil AI Model API
-   */
-  classify: async (transactionId, description) => {
-    logger.info(`[AI] Memulai klasifikasi untuk transaksi: ${transactionId}`);
-
-    try {
-      // 1. Panggil API AI Model
-      // Catatan: Sesuaikan JSON body dan field response dengan model AI Anda
-      const response = await fetch(AI_MODEL_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ description }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`AI Model API error: ${response.statusText}`);
-      }
-
-      const aiResult = await response.json();
-      logger.info(`[AI] Response dari model:`, aiResult);
-
-      // Anggap AI mengembalikan { "category": "Makanan", "confidence": 0.95 }
-      // Sesuaikan 'aiResult.category' dengan field yang benar dari API Anda
-      const categoryNameFromAI = aiResult.category || aiResult.label || null;
-      const confidence = aiResult.confidence || aiResult.score || 0;
-
-      // 2. Map nama kategori ke ID di database
-      const categories = await getCategoriesWithCache();
-      let matchedCategory = findCategoryByName(categories, categoryNameFromAI);
-
-      if (matchedCategory) {
-        return {
-          transactionId,
-          categoryId: matchedCategory.id,
-          confidence,
-        };
-      }
-
-      // 3. Fallback jika tidak ada match
-      logger.warn(`[AI] Kategori "${categoryNameFromAI}" tidak ditemukan di DB, menggunakan fallback.`);
-      const fallbackCategory = findCategoryByName(categories, FALLBACK_CATEGORY_NAME);
-
-      return {
-        transactionId,
-        categoryId: fallbackCategory ? fallbackCategory.id : null,
-        confidence: 0.50,
-      };
-
-    } catch (error) {
-      logger.error(`[AI] Gagal memanggil AI Model: ${error.message}`);
-      throw error; // Biarkan transactionService yang menangani error-nya
-    }
-  },
-
-  invalidateCache: () => {
-    categoryCache = null;
-    cacheTimestamp = 0;
-    logger.info('[AI] Category cache di-invalidate');
-  },
+/**
+ * Invalidate cache (retained for backward compatibility)
+ */
+const invalidateCache = () => {
+  logger.info('[aiService] Cache invalidate dipanggil (noop — cache sudah dihapus)');
 };
 
-module.exports = aiService;
+module.exports = { predictCategory, isAlive, invalidateCache };

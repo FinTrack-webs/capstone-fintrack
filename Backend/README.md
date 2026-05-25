@@ -45,7 +45,7 @@ Tim Frontend dapat langsung berintegrasi dengan API ini dengan memperhatikan poi
 
 ### Dokumentasi API Interaktif (Swagger UI)
 Saat server berjalan, Anda dapat mengakses dokumentasi API interaktif di:
-**[http://localhost:3000/api-docs](http://localhost:3000/api-docs)**  
+**[https://backend-fintrack-production.up.railway.app/api-docs](https://backend-fintrack-production.up.railway.app/api-docs)**  
 *Dokumentasi ini mencakup skema request body, parameter query, headers, dan format response lengkap.*
 
 ### Alur Autentikasi (JWT + Session Revocation)
@@ -60,35 +60,49 @@ API ini menggunakan metode pengamanan berlapis:
 
 ---
 
-## 2. Panduan Khusus Tim AI (AI Integration & Mock Guide)
+## 2. Panduan Khusus Tim AI (AI Integration)
 
-Backend FinTrack dilengkapi dengan fitur klasifikasi kategori otomatis berbasis deskripsi transaksi. Saat ini, sistem menggunakan **AI Mock Service** yang meniru perilaku API klasifikasi AI riil untuk mempermudah pengerjaan paralel.
+Backend FinTrack sekarang sudah sepenuhnya terintegrasi untuk berkomunikasi dengan **FinTrack AI Service** (Python) via HTTP request.
 
-### Cara Kerja Integrasi AI (Fire-and-Forget Pattern)
-1.  **Pemicu Otomatis:**
-    *   Jika user mencatat transaksi *tanpa* memilih kategori (`category_id` tidak dikirim), server akan secara otomatis menandai status transaksi tersebut sebagai `pending` dan memicu klasifikasi kategori di latar belakang (**Async Fire-and-Forget**).
-2.  **Fuzzy Matching & Klasifikasi:**
-    *   Logika di `src/services/aiMockService.js` saat ini melakukan pemindaian kata kunci dari deskripsi transaksi (contoh: kata "bensin" akan otomatis diklasifikasikan ke kategori "Transportasi").
-    *   Jika klasifikasi berhasil, database transaksi akan langsung diperbarui dengan `category_id` yang sesuai dan mengubah status transaksi dari `pending` menjadi `completed`.
-    *   Jika tidak ada kecocokan kata kunci sama sekali, kategori akan otomatis jatuh ke kategori fallback **"Lainnya"** (kategori ID 13).
+### Cara Kerja Integrasi AI (Dual Endpoint & Fire-and-Forget)
+1.  **Endpoint Preview (`/predict-only`):**
+    *   Tersedia endpoint `POST /api/transactions/predict-only` bagi tim AI dan Frontend untuk mengetes akurasi model klasifikasi tanpa menyimpan data ke database. Endpoint ini meneruskan input (`description`, `transaction_type`, `account_type`) ke AI Service.
+2.  **Klasifikasi Otomatis (Fire-and-Forget):**
+    *   Jika user mencatat transaksi baru via `POST /api/transactions` *tanpa* memilih `category_id`, server akan menandai transaksi dengan status `pending` dan secara asinkron memanggil AI Service.
+    *   Jika AI berhasil mengklasifikasikan, database akan diperbarui dengan `category_id` (hasil pemetaan), `ai_confidence`, dan status menjadi `classified`.
+3.  **Mode Testing Lokal (Mock AI):**
+    *   Jika AI service riil belum berjalan di komputer Anda, jalankan backend dengan perintah `NODE_ENV=test npm run dev` untuk menggunakan *AI Mock Service* lokal (simulasi instan).
 
-### Ekspektasi untuk Model Klasifikasi AI Riil (Production)
-Tim AI diharapkan membangun model klasifikasi teks / NLP dengan spesifikasi berikut saat nanti menggantikan mock service ini:
-*   **Input Model:** String deskripsi transaksi (contoh: `"Beli nasi goreng di warung"`).
-*   **Output Model:** Nama kategori (contoh: `"Makanan & Minuman"`) atau kode ID kategori yang cocok dengan daftar di database.
-*   **Waktu Respon:** Karena proses ini berjalan secara asinkron (background task), model klasifikasi harus dioptimalkan untuk memproses di bawah 2 detik demi menjaga integritas database dan kenyamanan pengguna saat melakukan reload di dashboard.
+### Ekspektasi API Model Klasifikasi (FinTrack AI)
+Backend Node.js mengekspektasikan AI API berjalan di URL yang diatur pada `.env` (`FINTRACK_API_URL`) dan memiliki dua rute berikut berdasarkan `account_type`:
+*   `POST /predict/personal`
+*   `POST /predict/business`
+
+**Request dari Backend ke AI:**
+```json
+{
+  "description": "Beli nasi goreng",
+  "transaction_type": "debit"
+}
+```
+**Ekspektasi Response dari AI:**
+```json
+{
+  "predicted_category": "Makanan",
+  "confidence_score": 0.95
+}
+```
 
 ---
 
-## 3. Deploy ke Vercel (Production)
+## 3. Status Deployment (Railway)
 
-Backend siap deploy ke [Vercel](https://vercel.com). Ikuti panduan lengkap di **[DEPLOY.md](./DEPLOY.md)**.
+Saat ini, Backend FinTrack **telah berhasil di-deploy ke Railway** dan berjalan secara *live* (bersinkronisasi otomatis dengan repositori GitHub). ini untuk link Backend: **[https://backend-fintrack-production.up.railway.app](https://backend-fintrack-production.up.railway.app)**
 
-Ringkasan cepat:
-- Repo monorepo → **Root Directory** di Vercel: `Backend`
-- Env: salin dari `.env.vercel` → Vercel Environment Variables
-- Health check: `/api/ping`
-- Swagger: `https://<project>.vercel.app/api-docs`
+**Langkah Selanjutnya untuk Tim:**
+*   **Tim Frontend:** Silakan gunakan URL API dari Railway ini sebagai `baseURL` HTTP Client (Axios/Fetch) di aplikasi frontend Anda.
+*   **Tim AI:** Segera setelah service AI (Python) berhasil di-deploy, berikan **URL API AI tersebut** kepada tim Backend agar bisa dipasang ke variabel lingkungan (`FINTRACK_API_URL`) di dashboard Railway Backend.
+
 
 ---
 
@@ -101,4 +115,4 @@ npm run test:api
 ```
 
 ---
-*FinTrack Backend Team - Alief albayu*
+*FinTrack Backend - Alief albayu*

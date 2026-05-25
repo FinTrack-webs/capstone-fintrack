@@ -54,6 +54,12 @@ const createTransactionSchema = Joi.object({
     'date.format': 'Format tanggal harus ISO (YYYY-MM-DD)',
     'any.required': 'Tanggal wajib diisi',
   }),
+  account_type: Joi.string().valid('personal', 'business').default('personal').messages({
+    'any.only': 'Account type harus personal atau business',
+  }),
+  transaction_type: Joi.string().optional().messages({
+    'string.base': 'Transaction type harus berupa string',
+  }),
 });
 
 const updateTransactionSchema = Joi.object({
@@ -87,6 +93,19 @@ const updateCategorySchema = Joi.object({
   'object.min': 'Minimal satu field harus diisi untuk update',
 });
 
+// AI PREDICT SCHEMA
+const predictCategorySchema = Joi.object({
+  description: Joi.string().required().messages({
+    'any.required': 'Deskripsi wajib diisi',
+  }),
+  transaction_type: Joi.string().required().messages({
+    'any.required': 'Transaction type wajib diisi',
+  }),
+  account_type: Joi.string().valid('personal', 'business').default('personal').messages({
+    'any.only': 'Account type harus personal atau business',
+  }),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -96,4 +115,5 @@ module.exports = {
   updateTransactionSchema,
   createCategorySchema,
   updateCategorySchema,
+  predictCategorySchema,
 };
