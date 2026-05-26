@@ -13,7 +13,16 @@ router.use('/categories', categoryRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/dashboard', dashboardRoutes);
 
-// Info API (GET /api — bukan 404 kosong)
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Info API
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: Informasi API
+ */
 router.get('/', (req, res) => {
   res.json({
     message: 'FinTrack API',
@@ -28,7 +37,16 @@ router.get('/', (req, res) => {
   });
 });
 
-// Health check
+/**
+ * @swagger
+ * /ping:
+ *   get:
+ *     summary: Health check
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: API is running
+ */
 router.get('/ping', (req, res) => {
   res.json({ message: 'Pong!' });
 });
