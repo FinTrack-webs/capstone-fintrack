@@ -1,7 +1,3 @@
-/**
- * Simple logger utility
- * Memberikan format log yang konsisten di seluruh aplikasi
- */
 const logger = {
   info: (message, data = '') => {
     console.log(`[INFO] ${new Date().toISOString()} - ${message}`, data);

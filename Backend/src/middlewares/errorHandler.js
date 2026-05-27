@@ -1,9 +1,5 @@
 const logger = require('../utils/logger');
 
-/**
- * Global Error Handler Middleware
- * Menangkap semua error yang diteruskan via next(err)
- */
 const errorHandler = (err, req, res, next) => {
   logger.error(`${err.message}`, {
     stack: err.stack,

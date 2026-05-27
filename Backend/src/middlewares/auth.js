@@ -2,10 +2,7 @@ const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
 const logger = require('../utils/logger');
 
-/**
- * Auth Middleware
- * Memverifikasi JWT access token dari header Authorization: Bearer <token>
- */
+//Verifikasi JWT access token dari header Authorization: Bearer <token>
 const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 

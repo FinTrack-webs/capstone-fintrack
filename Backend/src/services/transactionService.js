@@ -16,7 +16,7 @@ const classifyInBackground = async (transactionId, description, transactionType,
     const aiResult = await aiService.predictCategory(description, transactionType, accountType);
 
     if (!aiResult) {
-      // AI gagal → set status failed
+      // set status failed
       await transactionRepository.updateClassification(transactionId, {
         categoryId: null,
         aiConfidence: null,
@@ -25,11 +25,11 @@ const classifyInBackground = async (transactionId, description, transactionType,
       return;
     }
 
-    // 2. Cari category_id dari nama yang sudah di-mapping
+    // Cari category_id dari nama yang sudah di-mapping
     const category = await categoryRepository.findByName(aiResult.mapped_name);
     const categoryId = category?.id ?? null;
 
-    // 3. Update transaksi
+    // Update transaksi
     await transactionRepository.updateClassification(transactionId, {
       categoryId,
       aiConfidence: aiResult.confidence_score,
@@ -46,16 +46,12 @@ const classifyInBackground = async (transactionId, description, transactionType,
 };
 
 const transactionService = {
-  /**
-   * Ambil semua transaksi milik user
-   */
+  // Ambil semua transaksi milik user
   getAllByUser: async (userId) => {
     return transactionRepository.findAllByUserId(userId);
   },
 
-  /**
-   * Ambil transaksi berdasarkan ID (dengan ownership check)
-   */
+  // Ambil transaksi berdasarkan ID (dengan ownership check)
   getById: async (id, userId) => {
     const transaction = await transactionRepository.findByIdAndUserId(id, userId);
     if (!transaction) {
@@ -66,9 +62,7 @@ const transactionService = {
     return transaction;
   },
 
-  /**
-   * Buat transaksi baru + trigger AI classification (fire-and-forget)
-   */
+  // Buat transaksi baru + trigger AI classification (fire-and-forget)
   create: async (userId, data) => {
     const { category_id, amount, description, date, account_type = 'personal', transaction_type } = data;
 
@@ -76,8 +70,7 @@ const transactionService = {
       userId, category_id, amount, description, date, account_type
     );
 
-    // Fire-and-Forget: AI Classification
-    // Jika category_id tidak disediakan, trigger auto-classification
+    // trigger auto-classification
     if (!category_id) {
       classifyInBackground(transaction.id, description, transaction_type, account_type)
         .catch((err) => {
@@ -88,16 +81,12 @@ const transactionService = {
     return transaction;
   },
 
-  /**
-   * Preview kategori tanpa simpan ke DB
-   */
+  // Preview kategori tanpa simpan ke DB
   previewCategory: async (description, transactionType, accountType) => {
     return aiService.predictCategory(description, transactionType, accountType);
   },
 
-  /**
-   * Update transaksi (dengan ownership check)
-   */
+  // Update transaksi (dengan ownership check)
   update: async (id, userId, fields) => {
     const transaction = await transactionRepository.update(id, userId, fields);
     if (!transaction) {
@@ -108,9 +97,7 @@ const transactionService = {
     return transaction;
   },
 
-  /**
-   * Hapus transaksi (dengan ownership check)
-   */
+  // Hapus transaksi (dengan ownership check)
   delete: async (id, userId) => {
     const transaction = await transactionRepository.delete(id, userId);
     if (!transaction) {

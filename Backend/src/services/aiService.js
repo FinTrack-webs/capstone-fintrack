@@ -6,10 +6,8 @@ const logger = require('../utils/logger');
  * Mendukung dual endpoint: /predict/personal dan /predict/business
  */
 
-// BASE URL dari environment variable
 const FINTRACK_URL = process.env.FINTRACK_API_URL;
 
-// Normalisasi tipe transaksi ke format FinTrack
 const normalizeType = (type) => {
   const map = {
     debit: 'debit', credit: 'kredit', kredit: 'kredit',
@@ -18,8 +16,6 @@ const normalizeType = (type) => {
   return map[type?.toLowerCase()] ?? 'debit';
 };
 
-// Mapping nama kategori FinTrack → nama kategori di tabel categories
-// Digunakan untuk mencari category_id yang sesuai
 const CATEGORY_MAP = {
   // Personal
   'Gaji': 'Gaji',
@@ -80,7 +76,7 @@ const predictCategory = async (description, transactionType, accountType = 'pers
     };
   } catch (err) {
     logger.error(`[aiService.predictCategory] ${err.message}`);
-    return null; // JANGAN throw — transaksi harus tetap bisa disimpan
+    return null;
   }
 };
 

@@ -6,10 +6,7 @@ const refreshTokenRepository = require('../repositories/refreshTokenRepository')
 const logger = require('../utils/logger');
 
 const authService = {
-
-  //Register user baru
   register: async (email, password) => {
-    // Cek apakah email sudah terdaftar
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       const error = new Error('Email sudah terdaftar');
@@ -31,7 +28,6 @@ const authService = {
 
   //Login dan generate tokens
   login: async (email, password) => {
-    // Cari user
     const user = await userRepository.findByEmail(email);
     if (!user) {
       const error = new Error('Email atau password salah');
@@ -78,7 +74,7 @@ const authService = {
   //Refresh token
   refreshToken: async (refreshToken) => {
     try {
-      // Verifikasi JWT validity
+      // Verifikasi JWT
       const decoded = jwt.verify(refreshToken, jwtConfig.secret);
 
       // Cek apakah refresh token ada di database (belum di-revoke)
