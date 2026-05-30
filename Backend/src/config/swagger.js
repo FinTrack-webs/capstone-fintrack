@@ -168,6 +168,122 @@ const options = {
             message: { type: 'string' },
           },
         },
+
+        // User Profile
+        UserProfile: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            email: { type: 'string', format: 'email' },
+            full_name: { type: 'string', nullable: true, example: 'John Doe' },
+            phone: { type: 'string', nullable: true, example: '081234567890' },
+            address: { type: 'string', nullable: true, example: 'Jl. Merdeka No. 1' },
+            avatar_url: { type: 'string', nullable: true },
+            two_fa_enabled: { type: 'boolean', example: false },
+            created_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        UpdateProfileRequest: {
+          type: 'object',
+          properties: {
+            full_name: { type: 'string', example: 'John Doe' },
+            phone: { type: 'string', example: '081234567890' },
+            address: { type: 'string', example: 'Jl. Merdeka No. 1' },
+          },
+        },
+        ChangePasswordRequest: {
+          type: 'object',
+          required: ['current_password', 'new_password'],
+          properties: {
+            current_password: { type: 'string', example: 'oldpassword123' },
+            new_password: { type: 'string', minLength: 8, example: 'newpassword456' },
+          },
+        },
+        UpdateAvatarRequest: {
+          type: 'object',
+          required: ['avatar_url'],
+          properties: {
+            avatar_url: { type: 'string', format: 'uri', example: 'https://example.com/avatar.jpg' },
+          },
+        },
+        Toggle2faRequest: {
+          type: 'object',
+          required: ['enabled'],
+          properties: {
+            enabled: { type: 'boolean', example: true },
+          },
+        },
+
+        // Savings Goals
+        SavingsGoal: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            user_id: { type: 'string', format: 'uuid' },
+            name: { type: 'string', example: 'Target Umroh' },
+            target_amount: { type: 'integer', example: 30000000 },
+            current_amount: { type: 'integer', example: 22500000 },
+            progress_percentage: { type: 'integer', example: 75 },
+            created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        CreateSavingsGoalRequest: {
+          type: 'object',
+          required: ['name', 'target_amount'],
+          properties: {
+            name: { type: 'string', example: 'Target Umroh' },
+            target_amount: { type: 'integer', minimum: 1, example: 30000000 },
+            current_amount: { type: 'integer', minimum: 0, example: 0 },
+          },
+        },
+
+        // Analytics
+        ExpenseDistribution: {
+          type: 'object',
+          properties: {
+            category_name: { type: 'string', example: 'Makanan' },
+            total: { type: 'integer', example: 1500000 },
+            percentage: { type: 'integer', example: 40 },
+          },
+        },
+        IncomeVsExpense: {
+          type: 'object',
+          properties: {
+            label: { type: 'string', example: 'Jan' },
+            income: { type: 'integer', example: 8000000 },
+            expense: { type: 'integer', example: 3200000 },
+          },
+        },
+
+        // AI Insights
+        AIInsight: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: ['tip', 'warning', 'info'], example: 'tip' },
+            message: { type: 'string', example: 'Hemat Rp200rb bulan depan dengan mengurangi kategori Hiburan.' },
+            action_label: { type: 'string', nullable: true, example: 'Lihat Rincian' },
+          },
+        },
+        FinancialHealthScore: {
+          type: 'object',
+          properties: {
+            score: { type: 'integer', minimum: 0, maximum: 100, example: 75 },
+            total_income: { type: 'integer', example: 8000000 },
+            total_expense: { type: 'integer', example: 3200000 },
+          },
+        },
+
+        // Pagination
+        PaginationMeta: {
+          type: 'object',
+          properties: {
+            total: { type: 'integer', example: 150 },
+            page: { type: 'integer', example: 1 },
+            limit: { type: 'integer', example: 10 },
+            total_pages: { type: 'integer', example: 15 },
+          },
+        },
       },
     },
   },

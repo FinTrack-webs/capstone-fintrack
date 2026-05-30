@@ -9,14 +9,49 @@ const aiService = process.env.NODE_ENV === 'test'
 const transactionController = {
   /**
    * GET /api/transactions
+   * Mendukung filter dan paginasi via query params
    */
   getAll: asyncHandler(async (req, res) => {
-    const transactions = await transactionService.getAllByUser(req.user.userId);
+    const { search, category_id, type, status, start_date, end_date, page, limit } = req.query;
+
+    const filters = {
+      search,
+      category_id: category_id ? parseInt(category_id, 10) : undefined,
+      type,
+      status,
+      start_date,
+      end_date,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    };
+
+    const result = await transactionService.getAllByUser(req.user.userId, filters);
 
     res.status(200).json({
       status: 'success',
-      data: transactions,
+      data: result.data,
+      pagination: result.pagination,
     });
+  }),
+
+  /**
+   * GET /api/transactions/export
+   * Export transaksi ke CSV
+   */
+  exportCsv: asyncHandler(async (req, res) => {
+    const { start_date, end_date, category_id } = req.query;
+
+    const filters = {
+      start_date,
+      end_date,
+      category_id: category_id ? parseInt(category_id, 10) : undefined,
+    };
+
+    const csvString = await transactionService.exportCsv(req.user.userId, filters);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="transactions.csv"');
+    res.send(csvString);
   }),
 
   /**

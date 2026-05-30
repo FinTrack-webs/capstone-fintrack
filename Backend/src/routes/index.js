@@ -6,12 +6,20 @@ const authRoutes = require('./auth');
 const categoryRoutes = require('./categories');
 const transactionRoutes = require('./transactions');
 const dashboardRoutes = require('./dashboard');
+const usersRoutes = require('./users');
+const analyticsRoutes = require('./analytics');
+const savingsGoalsRoutes = require('./savingsGoals');
+const aiRoutes = require('./ai');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/users', usersRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/savings-goals', savingsGoalsRoutes);
+router.use('/ai', aiRoutes);
 
 /**
  * @swagger
@@ -33,6 +41,10 @@ router.get('/', (req, res) => {
       categories: '/api/categories',
       transactions: '/api/transactions',
       dashboard: '/api/dashboard',
+      users: '/api/users',
+      analytics: '/api/analytics',
+      'savings-goals': '/api/savings-goals',
+      ai: '/api/ai',
     },
   });
 });

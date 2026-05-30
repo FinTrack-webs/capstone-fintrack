@@ -7,12 +7,10 @@ const aiService = process.env.NODE_ENV === 'test'
   ? require('./aiMockService')
   : require('./aiService');
 
-/**
- * Background process (fire-and-forget) — klasifikasi transaksi dengan AI
- */
+// Klasifikasi transaksi secara background (fire-and-forget)
 const classifyInBackground = async (transactionId, description, transactionType, accountType) => {
   try {
-    // 1. Panggil FinTrack AI
+    // Panggil FinTrack AI
     const aiResult = await aiService.predictCategory(description, transactionType, accountType);
 
     if (!aiResult) {
@@ -46,9 +44,34 @@ const classifyInBackground = async (transactionId, description, transactionType,
 };
 
 const transactionService = {
-  // Ambil semua transaksi milik user
-  getAllByUser: async (userId) => {
-    return transactionRepository.findAllByUserId(userId);
+  /**
+   * Ambil semua transaksi milik user dengan filter dan paginasi
+   * @param {string} userId
+   * @param {object} filters - { search, category_id, type, status, start_date, end_date, page, limit }
+   * @returns {{ data: Array, pagination: object }}
+   */
+  getAllByUser: async (userId, filters = {}) => {
+    const page = Math.max(parseInt(filters.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(filters.limit, 10) || 10, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const repoFilters = {
+      ...filters,
+      limit,
+      offset,
+    };
+
+    const { rows, total } = await transactionRepository.findAllByUserId(userId, repoFilters);
+
+    return {
+      data: rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    };
   },
 
   // Ambil transaksi berdasarkan ID (dengan ownership check)
@@ -84,6 +107,41 @@ const transactionService = {
   // Preview kategori tanpa simpan ke DB
   previewCategory: async (description, transactionType, accountType) => {
     return aiService.predictCategory(description, transactionType, accountType);
+  },
+
+  /**
+   * Export transaksi ke format CSV
+   * @param {string} userId
+   * @param {object} filters - { start_date, end_date, category_id }
+   * @returns {string} CSV string
+   */
+  exportCsv: async (userId, filters = {}) => {
+    const rows = await transactionRepository.findAllForExport(userId, filters);
+
+    // Header CSV
+    const header = 'Tanggal,Deskripsi,Kategori,Jumlah,Status';
+    const lines = [header];
+
+    for (const row of rows) {
+      // Format tanggal ke YYYY-MM-DD
+      const tanggal = row.date instanceof Date
+        ? row.date.toISOString().split('T')[0]
+        : String(row.date || '').split('T')[0];
+
+      // Escape koma dan kutip dalam deskripsi
+      let deskripsi = String(row.description || '');
+      if (deskripsi.includes(',') || deskripsi.includes('"') || deskripsi.includes('\n')) {
+        deskripsi = `"${deskripsi.replace(/"/g, '""')}"`;
+      }
+
+      const kategori = row.category_name || 'Tidak Berkategori';
+      const jumlah = row.amount;
+      const status = row.classification_status || '';
+
+      lines.push(`${tanggal},${deskripsi},${kategori},${jumlah},${status}`);
+    }
+
+    return lines.join('\n');
   },
 
   // Update transaksi (dengan ownership check)

@@ -106,6 +106,71 @@ const predictCategorySchema = Joi.object({
   }),
 });
 
+// USER PROFILE SCHEMA
+const updateProfileSchema = Joi.object({
+  full_name: Joi.string().max(255).optional().messages({
+    'string.max': 'Nama lengkap maksimal 255 karakter',
+  }),
+  phone: Joi.string().max(20).optional().messages({
+    'string.max': 'Nomor telepon maksimal 20 karakter',
+  }),
+  address: Joi.string().optional().messages({
+    'string.base': 'Alamat harus berupa string',
+  }),
+}).min(1).messages({
+  'object.min': 'Minimal satu field harus diisi untuk update profil',
+});
+
+const changePasswordSchema = Joi.object({
+  current_password: Joi.string().required().messages({
+    'any.required': 'Password saat ini wajib diisi',
+  }),
+  new_password: Joi.string().min(8).required().messages({
+    'string.min': 'Password baru minimal 8 karakter',
+    'any.required': 'Password baru wajib diisi',
+  }),
+});
+
+const updateAvatarSchema = Joi.object({
+  avatar_url: Joi.string().uri().required().messages({
+    'string.uri': 'URL avatar harus berupa URI yang valid',
+    'any.required': 'URL avatar wajib diisi',
+  }),
+});
+
+const toggle2faSchema = Joi.object({
+  enabled: Joi.boolean().required().messages({
+    'boolean.base': 'Field enabled harus berupa boolean',
+    'any.required': 'Field enabled wajib diisi',
+  }),
+});
+
+// SAVINGS GOAL SCHEMA
+const createSavingsGoalSchema = Joi.object({
+  name: Joi.string().min(1).max(255).required().messages({
+    'string.min': 'Nama target tidak boleh kosong',
+    'string.max': 'Nama target maksimal 255 karakter',
+    'any.required': 'Nama target wajib diisi',
+  }),
+  target_amount: Joi.number().integer().min(1).required().messages({
+    'number.base': 'Jumlah target harus berupa angka',
+    'number.min': 'Jumlah target harus lebih dari 0',
+    'any.required': 'Jumlah target wajib diisi',
+  }),
+  current_amount: Joi.number().integer().min(0).default(0).messages({
+    'number.base': 'Jumlah terkini harus berupa angka',
+    'number.min': 'Jumlah terkini tidak boleh negatif',
+  }),
+});
+
+const updateSavingsGoalSchema = Joi.object({
+  name: Joi.string().min(1).max(255).optional(),
+  target_amount: Joi.number().integer().min(1).optional(),
+  current_amount: Joi.number().integer().min(0).optional(),
+}).min(1).messages({
+  'object.min': 'Minimal satu field harus diisi untuk update',
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -116,4 +181,10 @@ module.exports = {
   createCategorySchema,
   updateCategorySchema,
   predictCategorySchema,
+  updateProfileSchema,
+  changePasswordSchema,
+  updateAvatarSchema,
+  toggle2faSchema,
+  createSavingsGoalSchema,
+  updateSavingsGoalSchema,
 };

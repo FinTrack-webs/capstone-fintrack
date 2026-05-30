@@ -13,12 +13,59 @@ router.use(auth);
  * /transactions:
  *   get:
  *     tags: [Transactions]
- *     summary: Ambil semua transaksi milik user
+ *     summary: Ambil semua transaksi milik user (dengan filter & paginasi)
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Cari berdasarkan deskripsi transaksi
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: integer
+ *         description: Filter berdasarkan ID kategori
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [income, expense]
+ *         description: Filter berdasarkan tipe kategori (income/expense)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, classified, failed]
+ *         description: Filter berdasarkan status klasifikasi
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter tanggal mulai (YYYY-MM-DD)
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter tanggal akhir (YYYY-MM-DD)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Nomor halaman (default 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Jumlah data per halaman (default 10, maks 100)
  *     responses:
  *       200:
- *         description: Daftar transaksi
+ *         description: Daftar transaksi dengan paginasi
  *         content:
  *           application/json:
  *             schema:
@@ -30,8 +77,57 @@ router.use(auth);
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Transaction'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total_pages:
+ *                       type: integer
  */
 router.get('/', transactionController.getAll);
+
+/**
+ * @swagger
+ * /transactions/export:
+ *   get:
+ *     tags: [Transactions]
+ *     summary: Export transaksi ke file CSV
+ *     description: Mengunduh semua transaksi user dalam format CSV. Mendukung filter berdasarkan tanggal dan kategori.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter tanggal mulai (YYYY-MM-DD)
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter tanggal akhir (YYYY-MM-DD)
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: integer
+ *         description: Filter berdasarkan ID kategori
+ *     responses:
+ *       200:
+ *         description: File CSV berhasil diunduh
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *               example: "Tanggal,Deskripsi,Kategori,Jumlah,Status\n2025-01-15,Gaji Bulanan,Gaji,5000000,classified"
+ */
+router.get('/export', transactionController.exportCsv);
 
 /**
  * @swagger

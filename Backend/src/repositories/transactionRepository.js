@@ -2,9 +2,10 @@ const db = require('../config/db');
 
 const transactionRepository = {
   /**
-   * Mengambil semua transaksi milik user tertentu
+   * Mengambil semua transaksi milik user tertentu dengan filter dan paginasi
    * @param {string} userId
-   * @param {object} filters - Opsional: { account_type, classification_status }
+   * @param {object} filters - Opsional: { account_type, classification_status, search, category_id, type, status, start_date, end_date, page, limit }
+   * @returns {{ rows: Array, total: number }}
    */
   findAllByUserId: async (userId, filters = {}) => {
     const conditions = ['t.user_id = $1'];
@@ -20,12 +21,103 @@ const transactionRepository = {
       values.push(filters.classification_status);
     }
 
+    // Filter pencarian berdasarkan deskripsi
+    if (filters.search) {
+      conditions.push(`t.description ILIKE $${paramCount++}`);
+      values.push(`%${filters.search}%`);
+    }
+
+    // Filter berdasarkan category_id
+    if (filters.category_id) {
+      conditions.push(`t.category_id = $${paramCount++}`);
+      values.push(filters.category_id);
+    }
+
+    // Filter berdasarkan tipe kategori (income/expense)
+    if (filters.type) {
+      conditions.push(`c.type = $${paramCount++}`);
+      values.push(filters.type);
+    }
+
+    // Filter berdasarkan status klasifikasi
+    if (filters.status) {
+      conditions.push(`t.classification_status = $${paramCount++}`);
+      values.push(filters.status);
+    }
+
+    // Filter berdasarkan rentang tanggal
+    if (filters.start_date) {
+      conditions.push(`t.date >= $${paramCount++}`);
+      values.push(filters.start_date);
+    }
+    if (filters.end_date) {
+      conditions.push(`t.date <= $${paramCount++}`);
+      values.push(filters.end_date);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // Query untuk menghitung total data
+    const countResult = await db.query(
+      `SELECT COUNT(*) AS total
+       FROM transactions t
+       LEFT JOIN categories c ON t.category_id = c.id
+       WHERE ${whereClause}`,
+      values
+    );
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    // Query data dengan paginasi
+    let query = `SELECT t.*, c.name AS category_name, c.type AS category_type
+       FROM transactions t
+       LEFT JOIN categories c ON t.category_id = c.id
+       WHERE ${whereClause}
+       ORDER BY t.date DESC, t.created_at DESC`;
+
+    const paginationValues = [...values];
+
+    if (filters.limit) {
+      query += ` LIMIT $${paramCount++}`;
+      paginationValues.push(filters.limit);
+    }
+    if (filters.offset !== undefined) {
+      query += ` OFFSET $${paramCount++}`;
+      paginationValues.push(filters.offset);
+    }
+
+    const result = await db.query(query, paginationValues);
+    return { rows: result.rows, total };
+  },
+
+  /**
+   * Mengambil semua transaksi untuk keperluan export CSV
+   * @param {string} userId
+   * @param {object} filters - Opsional: { start_date, end_date, category_id }
+   */
+  findAllForExport: async (userId, filters = {}) => {
+    const conditions = ['t.user_id = $1'];
+    const values = [userId];
+    let paramCount = 2;
+
+    if (filters.start_date) {
+      conditions.push(`t.date >= $${paramCount++}`);
+      values.push(filters.start_date);
+    }
+    if (filters.end_date) {
+      conditions.push(`t.date <= $${paramCount++}`);
+      values.push(filters.end_date);
+    }
+    if (filters.category_id) {
+      conditions.push(`t.category_id = $${paramCount++}`);
+      values.push(filters.category_id);
+    }
+
     const result = await db.query(
-      `SELECT t.*, c.name AS category_name, c.type AS category_type
+      `SELECT t.date, t.description, c.name AS category_name, t.amount, t.classification_status
        FROM transactions t
        LEFT JOIN categories c ON t.category_id = c.id
        WHERE ${conditions.join(' AND ')}
-       ORDER BY t.date DESC, t.created_at DESC`,
+       ORDER BY t.date DESC`,
       values
     );
     return result.rows;
