@@ -1,4 +1,4 @@
 # otw buat readme
 ```
-123
+python -m streamlit run app.py
 ```
