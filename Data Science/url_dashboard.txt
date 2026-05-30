@@ -1,2 +1,1 @@
-https://capstone-fintrack-1.streamlit.app/
 https://fintrack-capstone-project.streamlit.app/
