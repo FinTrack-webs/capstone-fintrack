@@ -97,9 +97,23 @@ const authService = {
 
   // Verifikasi OTP 2FA dan berikan JWT Token
   verify2FA: async (email, otpCode) => {
+    logger.info(`[2FA] Mencoba verifikasi OTP - email: "${email}", kode: "${otpCode}"`);
+
+    // Debug: Cek semua OTP yang ada untuk email ini
+    const { query } = require('../config/db');
+    const debugResult = await query(
+      `SELECT o.code, o.expires_at, o.created_at, u.email 
+       FROM otp_codes o 
+       JOIN users u ON o.user_id = u.id 
+       WHERE u.email = $1`,
+      [email]
+    );
+    logger.info(`[2FA] OTP records ditemukan di DB untuk email "${email}": ${JSON.stringify(debugResult.rows)}`);
+
     // Cari OTP aktif berdasarkan email & kode
     const activeOtp = await otpRepository.findActiveByEmailAndCode(email, otpCode);
     if (!activeOtp) {
+      logger.error(`[2FA] Tidak ditemukan OTP yang cocok! Input email="${email}", kode="${otpCode}"`);
       const error = new Error('Kode OTP salah atau sudah kedaluwarsa');
       error.statusCode = 400;
       throw error;
