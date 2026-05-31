@@ -20,11 +20,85 @@ const authService = {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Simpan user baru
+    // Simpan user baru (email_verified default false dari DB)
     const user = await userRepository.create(email, passwordHash);
-    logger.info(`User baru terdaftar: ${user.email}`);
+    
+    // Generate OTP untuk verifikasi email
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 menit
+    await otpRepository.create(user.id, otpCode, expiresAt);
+    
+    // Kirim email (fire and forget agar tidak blocking)
+    mailer.sendOTP(user.email, otpCode).catch(err => {
+      logger.error(`Gagal mengirim email OTP registrasi ke ${user.email}: ${err.message}`);
+    });
 
-    return user;
+    logger.info(`User baru terdaftar: ${user.email}. OTP dikirim.`);
+
+    return {
+      email: user.email,
+      requires_email_verification: true
+    };
+  },
+
+  // Verifikasi Email
+  verifyEmail: async (email, otpCode) => {
+    const activeOtp = await otpRepository.findActiveByEmailAndCode(email, otpCode);
+    if (!activeOtp) {
+      const error = new Error('Kode OTP salah atau sudah kedaluwarsa');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const now = new Date();
+    const otpExpiresAt = new Date(activeOtp.expires_at);
+    if (otpExpiresAt < now) {
+      const error = new Error('Kode OTP sudah kedaluwarsa');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Set email_verified = true
+    await userRepository.verifyEmail(activeOtp.user_id);
+    await otpRepository.deleteByUserId(activeOtp.user_id);
+    
+    logger.info(`Email terverifikasi untuk: ${email}`);
+    
+    return {
+      email,
+      email_verified: true
+    };
+  },
+
+  // Resend OTP Verifikasi Email
+  resendVerificationOtp: async (email) => {
+    const user = await userRepository.findByEmail(email);
+    if (!user) {
+      const error = new Error('User tidak ditemukan');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.email_verified) {
+      const error = new Error('Email sudah terverifikasi');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Hapus OTP lama dan buat baru
+    await otpRepository.deleteByUserId(user.id);
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await otpRepository.create(user.id, otpCode, expiresAt);
+
+    mailer.sendOTP(user.email, otpCode).catch(err => {
+      logger.error(`Gagal mengirim ulang email OTP registrasi ke ${user.email}: ${err.message}`);
+    });
+
+    return {
+      email: user.email,
+      message: 'Kode OTP baru telah dikirim'
+    };
   },
 
 
@@ -45,6 +119,13 @@ const authService = {
       throw error;
     }
 
+    // Cek apakah email sudah diverifikasi
+    if (user.email_verified === false) {
+      const error = new Error('Email belum diverifikasi. Silakan periksa email Anda untuk kode OTP atau minta ulang.');
+      error.statusCode = 403;
+      throw error;
+    }
+
     // JIKA 2FA AKTIF -> Generate OTP & Jangan berikan token dahulu
     if (user.two_fa_enabled) {
       // Hapus kode OTP lama
@@ -57,13 +138,15 @@ const authService = {
       // Simpan OTP ke database
       await otpRepository.create(user.id, otpCode, expiresAt);
 
-      // Kirim email
-      await mailer.sendOTP(user.email, otpCode);
+      // Kirim email (fire-and-forget, jangan di-await agar response cepat)
+      mailer.sendOTP(user.email, otpCode).catch(err => {
+        logger.error(`Gagal mengirim email OTP 2FA ke ${user.email}: ${err.message}`);
+      });
 
       logger.info(`User ${user.email} membutuhkan verifikasi 2FA. OTP dikirimkan.`);
 
       return {
-        two_fa_required: true,
+        requires_2fa: true,
         email: user.email,
       };
     }

@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const validate = require('../middlewares/validator');
 const auth = require('../middlewares/auth');
-const { registerSchema, loginSchema, verify2faSchema, refreshTokenSchema, logoutSchema } = require('../utils/joiSchemas');
+const { registerSchema, verifyEmailSchema, resendOtpSchema, loginSchema, verify2faSchema, refreshTokenSchema, logoutSchema } = require('../utils/joiSchemas');
 
 /**
  * @swagger
@@ -39,6 +39,63 @@ const { registerSchema, loginSchema, verify2faSchema, refreshTokenSchema, logout
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/register', validate(registerSchema), authController.register);
+
+/**
+ * @swagger
+ * /auth/verify-email:
+ *   post:
+ *     summary: Verifikasi OTP Email (Registrasi)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp_code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp_code:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email berhasil diverifikasi
+ *       400:
+ *         description: OTP salah atau kedaluwarsa
+ */
+router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
+
+/**
+ * @swagger
+ * /auth/resend-verification-otp:
+ *   post:
+ *     summary: Kirim Ulang OTP Verifikasi Email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: OTP berhasil dikirim ulang
+ *       400:
+ *         description: Email sudah terverifikasi
+ *       404:
+ *         description: User tidak ditemukan
+ */
+router.post('/resend-verification-otp', validate(resendOtpSchema), authController.resendVerificationOtp);
 
 /**
  * @swagger

@@ -11,8 +11,36 @@ const authController = {
 
     res.status(201).json({
       status: 'success',
-      message: 'Registrasi berhasil',
+      message: 'Kode verifikasi dikirim ke email',
       data: user,
+    });
+  }),
+
+  /**
+   * POST /api/auth/verify-email
+   */
+  verifyEmail: asyncHandler(async (req, res) => {
+    const { email, otp_code } = req.body;
+    const result = await authService.verifyEmail(email, otp_code);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Email berhasil diverifikasi',
+      data: result,
+    });
+  }),
+
+  /**
+   * POST /api/auth/resend-verification-otp
+   */
+  resendVerificationOtp: asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const result = await authService.resendVerificationOtp(email);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Kode verifikasi ulang telah dikirim',
+      data: result,
     });
   }),
 
@@ -25,7 +53,7 @@ const authController = {
 
     res.status(200).json({
       status: 'success',
-      message: result.two_fa_required ? 'OTP verifikasi 2 langkah telah dikirimkan ke email Anda' : 'Login berhasil',
+      message: result.requires_2fa ? 'Kode OTP telah dikirim ke email' : 'Login berhasil',
       data: result,
     });
   }),
