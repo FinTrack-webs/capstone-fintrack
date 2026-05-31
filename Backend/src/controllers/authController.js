@@ -25,7 +25,21 @@ const authController = {
 
     res.status(200).json({
       status: 'success',
-      message: 'Login berhasil',
+      message: result.two_fa_required ? 'OTP verifikasi 2 langkah telah dikirimkan ke email Anda' : 'Login berhasil',
+      data: result,
+    });
+  }),
+
+  /**
+   * POST /api/auth/verify-2fa
+   */
+  verify2fa: asyncHandler(async (req, res) => {
+    const { email, otp_code } = req.body;
+    const result = await authService.verify2FA(email, otp_code);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Autentikasi verifikasi 2 langkah berhasil',
       data: result,
     });
   }),

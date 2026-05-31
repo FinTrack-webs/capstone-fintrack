@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const routes = require('./routes');
@@ -34,6 +35,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Sajikan file statis dari folder public/uploads
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.originalUrl}`);

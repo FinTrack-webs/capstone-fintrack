@@ -60,6 +60,29 @@ const userController = {
   }),
 
   /**
+   * POST /api/users/avatar/upload
+   * Upload file avatar dan perbarui profil user
+   */
+  uploadAvatar: asyncHandler(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'File gambar wajib diunggah',
+      });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+    const data = await userService.updateAvatar(req.user.userId, avatarUrl);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Avatar berhasil diunggah dan diperbarui',
+      data,
+    });
+  }),
+
+  /**
    * PUT /api/users/2fa
    * Toggle pengaturan 2FA
    */

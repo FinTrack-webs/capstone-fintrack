@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const validate = require('../middlewares/validator');
 const auth = require('../middlewares/auth');
-const { registerSchema, loginSchema, refreshTokenSchema, logoutSchema } = require('../utils/joiSchemas');
+const { registerSchema, loginSchema, verify2faSchema, refreshTokenSchema, logoutSchema } = require('../utils/joiSchemas');
 
 /**
  * @swagger
@@ -67,6 +67,46 @@ router.post('/register', validate(registerSchema), authController.register);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', validate(loginSchema), authController.login);
+
+/**
+ * @swagger
+ * /auth/verify-2fa:
+ *   post:
+ *     summary: Verifikasi OTP Two-Factor Authentication (2FA)
+ *     description: Memverifikasi kode OTP 6-digit yang dikirimkan ke email user dan mengembalikan token akses JWT jika sukses.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp_code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               otp_code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Verifikasi OTP 2FA berhasil, user berhasil masuk
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Kode OTP salah atau sudah kedaluwarsa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/verify-2fa', validate(verify2faSchema), authController.verify2fa);
 
 /**
  * @swagger

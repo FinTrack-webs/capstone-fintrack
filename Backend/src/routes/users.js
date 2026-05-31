@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const auth = require('../middlewares/auth');
 const validate = require('../middlewares/validator');
+const upload = require('../middlewares/upload');
 const { updateProfileSchema, changePasswordSchema, updateAvatarSchema, toggle2faSchema } = require('../utils/joiSchemas');
 
 // Semua route user memerlukan auth
@@ -193,6 +194,51 @@ router.put('/password', validate(changePasswordSchema), userController.changePas
  *         description: Token tidak valid atau tidak diberikan
  */
 router.put('/avatar', validate(updateAvatarSchema), userController.updateAvatar);
+
+/**
+ * @swagger
+ * /users/avatar/upload:
+ *   post:
+ *     tags: [Users]
+ *     summary: Upload file avatar user (Multipart)
+ *     description: Mengunggah file gambar avatar asli dari perangkat dan memperbarui profil user. Format file yang didukung adalah JPEG, JPG, PNG, atau WEBP (maksimal 2MB).
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - avatar
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: File gambar avatar (JPEG, JPG, PNG, WEBP, maks 2MB)
+ *     responses:
+ *       200:
+ *         description: Avatar berhasil diunggah dan diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Avatar berhasil diunggah dan diperbarui
+ *                 data:
+ *                   $ref: '#/components/schemas/UserProfile'
+ *       400:
+ *         description: File tidak disertakan atau validasi format/ukuran gagal
+ *       401:
+ *         description: Token tidak valid atau tidak diberikan
+ */
+router.post('/avatar/upload', upload.single('avatar'), userController.uploadAvatar);
 
 /**
  * @swagger

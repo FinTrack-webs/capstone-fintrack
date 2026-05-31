@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
 const userRepository = require('../repositories/userRepository');
 const refreshTokenRepository = require('../repositories/refreshTokenRepository');
+const otpRepository = require('../repositories/otpRepository');
+const mailer = require('../utils/mailer');
 const logger = require('../utils/logger');
 
 const authService = {
@@ -43,7 +45,30 @@ const authService = {
       throw error;
     }
 
-    // Generate tokens
+    // JIKA 2FA AKTIF -> Generate OTP & Jangan berikan token dahulu
+    if (user.two_fa_enabled) {
+      // Hapus kode OTP lama
+      await otpRepository.deleteByUserId(user.id);
+
+      // Generate 6 digit angka OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // Kedaluwarsa dalam 5 menit
+
+      // Simpan OTP ke database
+      await otpRepository.create(user.id, otpCode, expiresAt);
+
+      // Kirim email
+      await mailer.sendOTP(user.email, otpCode);
+
+      logger.info(`User ${user.email} membutuhkan verifikasi 2FA. OTP dikirimkan.`);
+
+      return {
+        two_fa_required: true,
+        email: user.email,
+      };
+    }
+
+    // JIKA 2FA TIDAK AKTIF -> Lanjutkan login reguler
     const payload = { userId: user.id, email: user.email };
 
     const accessToken = jwt.sign(payload, jwtConfig.secret, {
@@ -62,6 +87,49 @@ const authService = {
     await refreshTokenRepository.create(user.id, refreshToken, expiresAt);
 
     logger.info(`User login berhasil: ${user.email}`);
+
+    return {
+      user: { id: user.id, email: user.email },
+      accessToken,
+      refreshToken,
+    };
+  },
+
+  // Verifikasi OTP 2FA dan berikan JWT Token
+  verify2FA: async (email, otpCode) => {
+    // Cari OTP aktif berdasarkan email & kode
+    const activeOtp = await otpRepository.findActiveByEmailAndCode(email, otpCode);
+    if (!activeOtp) {
+      const error = new Error('Kode OTP salah atau sudah kedaluwarsa');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Hapus OTP setelah sukses verifikasi (supaya sekali pakai/one-time)
+    await otpRepository.deleteByUserId(activeOtp.user_id);
+
+    // Ambil detail lengkap user
+    const user = await userRepository.findByEmail(email);
+
+    // Generate JWT tokens
+    const payload = { userId: user.id, email: user.email };
+
+    const accessToken = jwt.sign(payload, jwtConfig.secret, {
+      expiresIn: jwtConfig.accessTokenExpiry,
+    });
+
+    const refreshToken = jwt.sign(payload, jwtConfig.secret, {
+      expiresIn: jwtConfig.refreshTokenExpiry,
+    });
+
+    // Hitung expiry date untuk disimpan di DB
+    const decoded = jwt.decode(refreshToken);
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    // Simpan refresh token ke database
+    await refreshTokenRepository.create(user.id, refreshToken, expiresAt);
+
+    logger.info(`Verifikasi 2FA berhasil untuk: ${user.email}`);
 
     return {
       user: { id: user.id, email: user.email },

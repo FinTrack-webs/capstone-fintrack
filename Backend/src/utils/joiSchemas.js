@@ -22,6 +22,17 @@ const loginSchema = Joi.object({
   }),
 });
 
+const verify2faSchema = Joi.object({
+  email: Joi.string().email({ tlds: { allow: false } }).required().messages({
+    'string.email': 'Format email tidak valid',
+    'any.required': 'Email wajib diisi',
+  }),
+  otp_code: Joi.string().length(6).required().messages({
+    'string.length': 'Kode OTP harus berupa 6 karakter angka',
+    'any.required': 'Kode OTP wajib diisi',
+  }),
+});
+
 const refreshTokenSchema = Joi.object({
   refreshToken: Joi.string().required().messages({
     'any.required': 'Refresh token wajib diisi',
@@ -174,6 +185,7 @@ const updateSavingsGoalSchema = Joi.object({
 module.exports = {
   registerSchema,
   loginSchema,
+  verify2faSchema,
   refreshTokenSchema,
   logoutSchema,
   createTransactionSchema,
