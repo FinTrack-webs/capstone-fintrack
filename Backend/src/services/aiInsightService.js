@@ -15,6 +15,15 @@ const aiInsightService = {
     const totalIncome = parseInt(summary.total_income);
     const totalExpense = parseInt(summary.total_expense);
 
+    // Jika tidak ada transaksi sama sekali bulan ini → skor default 100 (tidak ada penalti/pengurangan)
+    if (totalIncome === 0 && totalExpense === 0) {
+      return {
+        score: 100,
+        total_income: 0,
+        total_expense: 0,
+      };
+    }
+
     // Jika total pengeluaran > total pemasukan → kurangi 30
     if (totalExpense > totalIncome) score -= 30;
 
