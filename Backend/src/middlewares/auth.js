@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
 const logger = require('../utils/logger');
 
-//Verifikasi JWT access token dari header Authorization: Bearer <token>
 const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -17,7 +16,7 @@ const auth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, jwtConfig.secret);
-    req.user = decoded; // { userId, email }
+    req.user = decoded;
     next();
   } catch (err) {
     logger.warn('Token tidak valid atau sudah expired', err.message);

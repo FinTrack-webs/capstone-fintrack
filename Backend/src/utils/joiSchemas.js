@@ -1,6 +1,5 @@
 const Joi = require('joi');
 
-// AUTH SCHEMA
 const registerSchema = Joi.object({
   email: Joi.string().email({ tlds: { allow: false } }).required().messages({
     'string.email': 'Format email tidak valid',
@@ -63,7 +62,6 @@ const logoutSchema = Joi.object({
   }),
 });
 
-// TRANSACTION SCHEMA
 const createTransactionSchema = Joi.object({
   category_id: Joi.number().integer().positive().optional().messages({
     'number.base': 'Category ID harus berupa angka',
@@ -100,7 +98,6 @@ const updateTransactionSchema = Joi.object({
   'object.min': 'Minimal satu field harus diisi untuk update',
 });
 
-// CATEGORY SCHEMA
 const createCategorySchema = Joi.object({
   name: Joi.string().min(1).max(100).required().messages({
     'string.min': 'Nama kategori tidak boleh kosong',
@@ -122,7 +119,6 @@ const updateCategorySchema = Joi.object({
   'object.min': 'Minimal satu field harus diisi untuk update',
 });
 
-// AI PREDICT SCHEMA
 const predictCategorySchema = Joi.object({
   description: Joi.string().required().messages({
     'any.required': 'Deskripsi wajib diisi',
@@ -135,7 +131,6 @@ const predictCategorySchema = Joi.object({
   }),
 });
 
-// USER PROFILE SCHEMA
 const updateProfileSchema = Joi.object({
   full_name: Joi.string().max(255).optional().messages({
     'string.max': 'Nama lengkap maksimal 255 karakter',
@@ -174,7 +169,6 @@ const toggle2faSchema = Joi.object({
   }),
 });
 
-// SAVINGS GOAL SCHEMA
 const createSavingsGoalSchema = Joi.object({
   name: Joi.string().min(1).max(255).required().messages({
     'string.min': 'Nama target tidak boleh kosong',

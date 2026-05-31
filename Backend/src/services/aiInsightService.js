@@ -10,12 +10,10 @@ const aiInsightService = {
   getFinancialHealthScore: async (userId) => {
     let score = 100;
 
-    // 1. Ambil ringkasan pemasukan vs pengeluaran bulan ini
     const summary = await analyticsRepository.getCurrentMonthSummary(userId);
     const totalIncome = parseInt(summary.total_income);
     const totalExpense = parseInt(summary.total_expense);
 
-    // Jika tidak ada transaksi sama sekali bulan ini → skor default 100 (tidak ada penalti/pengurangan)
     if (totalIncome === 0 && totalExpense === 0) {
       return {
         score: 100,
@@ -24,22 +22,16 @@ const aiInsightService = {
       };
     }
 
-    // Jika total pengeluaran > total pemasukan → kurangi 30
     if (totalExpense > totalIncome) score -= 30;
-
-    // Jika tidak ada transaksi pemasukan bulan ini → kurangi 20
     if (totalIncome === 0) score -= 20;
 
-    // 2. Cek rasio pengeluaran hiburan
     const ratioData = await analyticsRepository.getEntertainmentExpenseRatio(userId);
     const entertainmentTotal = parseInt(ratioData.entertainment_total);
     const totalExp = parseInt(ratioData.total_expense);
     const entertainmentRatio = totalExp > 0 ? entertainmentTotal / totalExp : 0;
 
-    // Jika Hiburan > 20% dari total pengeluaran → kurangi 10
     if (entertainmentRatio > 0.2) score -= 10;
 
-    // 3. Cek progress target tabungan
     const goals = await savingsGoalRepository.findAllByUserId(userId);
     const hasGoodProgress = goals.some((g) => {
       const progress = g.target_amount > 0 ? g.current_amount / g.target_amount : 0;
@@ -47,7 +39,6 @@ const aiInsightService = {
     });
     if (hasGoodProgress) score += 5;
 
-    // Clamp skor antara 0 - 100
     score = Math.max(0, Math.min(100, score));
 
     return {
@@ -64,12 +55,11 @@ const aiInsightService = {
   getInsights: async (userId) => {
     const insights = [];
 
-    // Ambil ringkasan bulan berjalan
+    
     const summary = await analyticsRepository.getCurrentMonthSummary(userId);
     const totalIncome = parseInt(summary.total_income);
     const totalExpense = parseInt(summary.total_expense);
 
-    // Peringatan: pengeluaran melebihi pemasukan
     if (totalExpense > totalIncome) {
       insights.push({
         type: 'warning',
@@ -77,7 +67,6 @@ const aiInsightService = {
       });
     }
 
-    // Peringatan: pengeluaran mendekati batas pemasukan (>= 80%)
     if (totalIncome > 0 && totalExpense >= totalIncome * 0.8) {
       insights.push({
         type: 'warning',
@@ -85,13 +74,11 @@ const aiInsightService = {
       });
     }
 
-    // Cek rasio pengeluaran hiburan
     const ratioData = await analyticsRepository.getEntertainmentExpenseRatio(userId);
     const entertainmentRatio = parseInt(ratioData.total_expense) > 0
       ? parseInt(ratioData.entertainment_total) / parseInt(ratioData.total_expense)
       : 0;
 
-    // Tips: pengeluaran hiburan terlalu tinggi (> 20%)
     if (entertainmentRatio > 0.2) {
       insights.push({
         type: 'tip',
@@ -100,7 +87,6 @@ const aiInsightService = {
       });
     }
 
-    // Tips: belum ada pemasukan tercatat bulan ini
     if (totalIncome === 0) {
       insights.push({
         type: 'tip',
@@ -108,7 +94,6 @@ const aiInsightService = {
       });
     }
 
-    // Cek target tabungan
     const goals = await savingsGoalRepository.findAllByUserId(userId);
     if (goals.length === 0) {
       insights.push({
@@ -118,7 +103,6 @@ const aiInsightService = {
       });
     }
 
-    // Info: keuangan sehat
     if (totalIncome > totalExpense && totalIncome > 0) {
       insights.push({
         type: 'info',

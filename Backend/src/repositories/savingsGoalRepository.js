@@ -68,7 +68,6 @@ const savingsGoalRepository = {
 
     if (setClauses.length === 0) return null;
 
-    // Selalu update timestamp updated_at
     setClauses.push('updated_at = NOW()');
 
     values.push(id);

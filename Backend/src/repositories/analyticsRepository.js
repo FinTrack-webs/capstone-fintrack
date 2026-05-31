@@ -40,10 +40,10 @@ const analyticsRepository = {
    * @param {string} userId
    * @param {string|null} startDate
    * @param {string|null} endDate
-   * @param {string} period - 'weekly' atau 'monthly'
+   * @param {string} period
    */
   getIncomeVsExpense: async (userId, startDate, endDate, period = 'monthly') => {
-    // Validasi period - hanya izinkan 'week' atau 'month' untuk DATE_TRUNC
+
     const truncPeriod = period === 'weekly' ? 'week' : 'month';
 
     const conditions = ['t.user_id = $1'];

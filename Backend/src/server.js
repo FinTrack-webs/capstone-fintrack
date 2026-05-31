@@ -10,7 +10,6 @@ const server = app.listen(PORT, HOST, () => {
   logger.info(`API Docs tersedia di http://${HOST}:${PORT}/api-docs`);
 });
 
-// Graceful Shutdown
 const shutdown = (signal) => {
   logger.info(`${signal} diterima. Menutup server...`);
   server.close(async () => {
@@ -25,7 +24,6 @@ const shutdown = (signal) => {
     }
   });
 
-  // Jika server tidak menutup dalam 10 detik, paksa keluar
   setTimeout(() => {
     logger.error('Gagal menutup server secara normal, memaksa keluar...');
     process.exit(1);

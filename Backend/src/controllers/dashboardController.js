@@ -2,9 +2,7 @@ const dashboardService = require('../services/dashboardService');
 const asyncHandler = require('../utils/asyncHelper');
 
 const dashboardController = {
-  /**
-   * GET /api/dashboard
-   */
+
   getSummary: asyncHandler(async (req, res) => {
     const summary = await dashboardService.getSummary(req.user.userId);
 

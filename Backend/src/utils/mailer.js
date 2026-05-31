@@ -4,7 +4,7 @@ const logger = require('./logger');
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.ethereal.email',
   port: parseInt(process.env.SMTP_PORT, 10) || 587,
-  secure: process.env.SMTP_SECURE === 'true', // true untuk port 465, false untuk port lainnya
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
@@ -18,7 +18,6 @@ const mailer = {
    * @param {string} code
    */
   sendOTP: async (toEmail, code) => {
-    // Fallback jika kredensial SMTP tidak ada di .env (Memudahkan Testing Lokal)
     if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
       logger.warn(`[MAILER MOCK]: Kredensial SMTP tidak diset!`);
       logger.warn(`[MAILER MOCK]: Kode OTP Anda untuk ${toEmail} adalah -> [ ${code} ] <-`);
@@ -49,7 +48,6 @@ const mailer = {
       return true;
     } catch (err) {
       logger.error(`[MAILER ERROR]: Gagal mengirim email OTP ke ${toEmail}: ${err.message}`);
-      // Log kode cadangan agar pengembang/user tidak terjebak jika SMTP error
       logger.warn(`[MAILER]: Kode OTP cadangan Anda adalah -> [ ${code} ] <-`);
       return false;
     }

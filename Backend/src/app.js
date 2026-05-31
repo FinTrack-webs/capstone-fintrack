@@ -15,7 +15,6 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// Konfigurasi CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
   : ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5173', 'http://localhost:5174'];
@@ -36,7 +35,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Sajikan file statis dari folder public/uploads
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.use((req, res, next) => {

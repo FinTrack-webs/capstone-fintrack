@@ -2,10 +2,7 @@ const savingsGoalService = require('../services/savingsGoalService');
 const asyncHandler = require('../utils/asyncHelper');
 
 const savingsGoalController = {
-  /**
-   * GET /api/savings-goals
-   * Mengambil semua target tabungan milik user
-   */
+
   getAll: asyncHandler(async (req, res) => {
     const data = await savingsGoalService.getAll(req.user.userId);
 
@@ -16,10 +13,6 @@ const savingsGoalController = {
     });
   }),
 
-  /**
-   * GET /api/savings-goals/:id
-   * Mengambil detail target tabungan berdasarkan ID
-   */
   getById: asyncHandler(async (req, res) => {
     const data = await savingsGoalService.getById(req.user.userId, req.params.id);
 
@@ -30,10 +23,6 @@ const savingsGoalController = {
     });
   }),
 
-  /**
-   * POST /api/savings-goals
-   * Membuat target tabungan baru
-   */
   create: asyncHandler(async (req, res) => {
     const data = await savingsGoalService.create(req.user.userId, req.body);
 
@@ -44,10 +33,6 @@ const savingsGoalController = {
     });
   }),
 
-  /**
-   * PUT /api/savings-goals/:id
-   * Update target tabungan
-   */
   update: asyncHandler(async (req, res) => {
     const data = await savingsGoalService.update(req.user.userId, req.params.id, req.body);
 
@@ -58,10 +43,6 @@ const savingsGoalController = {
     });
   }),
 
-  /**
-   * DELETE /api/savings-goals/:id
-   * Hapus target tabungan
-   */
   remove: asyncHandler(async (req, res) => {
     await savingsGoalService.remove(req.user.userId, req.params.id);
 

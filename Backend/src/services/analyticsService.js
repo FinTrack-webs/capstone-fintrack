@@ -1,6 +1,5 @@
 const analyticsRepository = require('../repositories/analyticsRepository');
 
-// Daftar singkatan bulan untuk label periode bulanan
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const analyticsService = {
@@ -16,7 +15,7 @@ const analyticsService = {
     return rows.map((row) => ({
       month: row.month,
       total: parseInt(row.total),
-      budget: null, // Belum ada tabel budget
+      budget: null,
     }));
   },
 
@@ -28,7 +27,7 @@ const analyticsService = {
    * @param {string} period - 'weekly' atau 'monthly'
    */
   getIncomeVsExpense: async (userId, startDate, endDate, period = 'monthly') => {
-    // Validasi period
+  
     const validPeriods = ['weekly', 'monthly'];
     if (!validPeriods.includes(period)) {
       const error = new Error('Period harus "weekly" atau "monthly"');
@@ -43,10 +42,8 @@ const analyticsService = {
       const date = new Date(row.period_start);
 
       if (period === 'monthly') {
-        // Format label bulan: "Jan", "Feb", dst.
         label = MONTH_LABELS[date.getMonth()];
       } else {
-        // Format label mingguan: tanggal string ISO
         label = date.toISOString().split('T')[0];
       }
 
@@ -67,7 +64,6 @@ const analyticsService = {
   getExpenseDistribution: async (userId, startDate, endDate) => {
     const rows = await analyticsRepository.getExpenseDistribution(userId, startDate, endDate);
 
-    // Hitung grand total untuk kalkulasi persentase
     const grandTotal = rows.reduce((sum, row) => sum + parseInt(row.total), 0);
 
     return rows.map((row) => {

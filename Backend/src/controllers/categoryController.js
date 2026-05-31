@@ -2,9 +2,7 @@ const categoryService = require('../services/categoryService');
 const asyncHandler = require('../utils/asyncHelper');
 
 const categoryController = {
-  /**
-   * GET /api/categories
-   */
+
   getAll: asyncHandler(async (req, res) => {
     const categories = await categoryService.getAll();
 
@@ -14,9 +12,6 @@ const categoryController = {
     });
   }),
 
-  /**
-   * GET /api/categories/:id
-   */
   getById: asyncHandler(async (req, res) => {
     const category = await categoryService.getById(req.params.id);
 
@@ -26,9 +21,6 @@ const categoryController = {
     });
   }),
 
-  /**
-   * POST /api/categories
-   */
   create: asyncHandler(async (req, res) => {
     const { name, type, icon_url } = req.body;
     const category = await categoryService.create(name, type, icon_url);
@@ -40,9 +32,6 @@ const categoryController = {
     });
   }),
 
-  /**
-   * PUT /api/categories/:id
-   */
   update: asyncHandler(async (req, res) => {
     const category = await categoryService.update(req.params.id, req.body);
 
@@ -53,9 +42,6 @@ const categoryController = {
     });
   }),
 
-  /**
-   * DELETE /api/categories/:id
-   */
   delete: asyncHandler(async (req, res) => {
     await categoryService.delete(req.params.id);
 

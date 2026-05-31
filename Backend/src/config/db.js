@@ -3,7 +3,6 @@ require('dotenv').config();
 
 const isVercel = Boolean(process.env.VERCEL || process.env.NOW_REGION);
 
-// Konfigurasi pool
 const poolConfig = {
   connectionString: process.env.DATABASE_URL, 
   ssl: {
@@ -13,7 +12,6 @@ const poolConfig = {
   idleTimeoutMillis: isVercel ? 10000 : 30000,
 };
 
-// Jika DATABASE_URL tidak ada, gunakan parameter individu
 if (!poolConfig.connectionString) {
   poolConfig.user = process.env.DATABASE_USER;
   poolConfig.host = process.env.DATABASE_HOST;
@@ -24,7 +22,6 @@ if (!poolConfig.connectionString) {
 
 const pool = new Pool(poolConfig);
 
-// Validasi konfigurasi database
 const requiredEnv = poolConfig.connectionString 
   ? [] 
   : ['DATABASE_USER', 'DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_PASSWORD', 'DATABASE_PORT'];
@@ -35,7 +32,6 @@ if (!poolConfig.connectionString && missingEnv.length > 0) {
   console.error(`[database]: Konfigurasi database tidak lengkap. Missing: ${missingEnv.join(', ')}`);
 }
 
-// Test koneksi database saat startup
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
     console.error('[database]: Koneksi ke database PostgreSQL gagal!', err.message);

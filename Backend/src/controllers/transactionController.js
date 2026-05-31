@@ -1,16 +1,12 @@
 const transactionService = require('../services/transactionService');
 const asyncHandler = require('../utils/asyncHelper');
 
-// Import AI service sesuai environment
+
 const aiService = process.env.NODE_ENV === 'test'
   ? require('../services/aiMockService')
   : require('../services/aiService');
 
 const transactionController = {
-  /**
-   * GET /api/transactions
-   * Mendukung filter dan paginasi via query params
-   */
   getAll: asyncHandler(async (req, res) => {
     const { search, category_id, type, status, start_date, end_date, page, limit } = req.query;
 
@@ -34,10 +30,6 @@ const transactionController = {
     });
   }),
 
-  /**
-   * GET /api/transactions/export
-   * Export transaksi ke CSV
-   */
   exportCsv: asyncHandler(async (req, res) => {
     const { start_date, end_date, category_id } = req.query;
 
@@ -54,9 +46,6 @@ const transactionController = {
     res.send(csvString);
   }),
 
-  /**
-   * GET /api/transactions/:id
-   */
   getById: asyncHandler(async (req, res) => {
     const transaction = await transactionService.getById(req.params.id, req.user.userId);
 
@@ -66,9 +55,6 @@ const transactionController = {
     });
   }),
 
-  /**
-   * POST /api/transactions
-   */
   create: asyncHandler(async (req, res) => {
     const transaction = await transactionService.create(req.user.userId, req.body);
 
@@ -79,10 +65,6 @@ const transactionController = {
     });
   }),
 
-  /**
-   * POST /api/transactions/predict-only
-   * Preview kategori AI tanpa simpan ke DB
-   */
   previewCategory: asyncHandler(async (req, res) => {
     const { description, transaction_type, account_type } = req.body;
 
@@ -104,10 +86,7 @@ const transactionController = {
       },
     });
   }),
-
-  /**
-   * PUT /api/transactions/:id
-   */
+  
   update: asyncHandler(async (req, res) => {
     const transaction = await transactionService.update(
       req.params.id,
@@ -122,9 +101,6 @@ const transactionController = {
     });
   }),
 
-  /**
-   * DELETE /api/transactions/:id
-   */
   delete: asyncHandler(async (req, res) => {
     await transactionService.delete(req.params.id, req.user.userId);
 

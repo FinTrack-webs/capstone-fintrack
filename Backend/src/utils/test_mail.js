@@ -2,7 +2,6 @@ require('dotenv').config();
 const mailer = require('./mailer');
 
 const runTest = async () => {
-  // Ambil email pengirim sebagai email tujuan uji coba secara default
   const testRecipient = process.env.SMTP_USER;
 
   if (!testRecipient) {
@@ -17,14 +16,14 @@ const runTest = async () => {
 
   if (success) {
     console.log('\n======================================================');
-    console.log('🎉 BERHASIL! Email uji coba sukses dikirim.');
-    console.log(`✉️  Silakan periksa kotak masuk (Inbox/Spam) email Anda: ${testRecipient}`);
+    console.log('BERHASIL! Email uji coba sukses dikirim.');
+    console.log(`Silakan periksa kotak masuk (Inbox/Spam) email Anda: ${testRecipient}`);
     console.log('======================================================\n');
     process.exit(0);
   } else {
     console.log('\n======================================================');
-    console.log('❌ GAGAL! Pengiriman email gagal.');
-    console.log('🔍 Silakan periksa detail error di atas untuk debugging.');
+    console.log('GAGAL! Pengiriman email gagal.');
+    console.log('Silakan periksa detail error di atas untuk debugging.');
     console.log('======================================================\n');
     process.exit(1);
   }

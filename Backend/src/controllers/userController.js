@@ -2,10 +2,7 @@ const userService = require('../services/userService');
 const asyncHandler = require('../utils/asyncHelper');
 
 const userController = {
-  /**
-   * GET /api/users/profile
-   * Mengambil profil user yang sedang login
-   */
+
   getProfile: asyncHandler(async (req, res) => {
     const data = await userService.getProfile(req.user.userId);
 
@@ -16,10 +13,6 @@ const userController = {
     });
   }),
 
-  /**
-   * PUT /api/users/profile
-   * Update profil user (full_name, phone, address)
-   */
   updateProfile: asyncHandler(async (req, res) => {
     const data = await userService.updateProfile(req.user.userId, req.body);
 
@@ -30,10 +23,6 @@ const userController = {
     });
   }),
 
-  /**
-   * PUT /api/users/password
-   * Ubah password user
-   */
   changePassword: asyncHandler(async (req, res) => {
     const { current_password, new_password } = req.body;
     await userService.changePassword(req.user.userId, current_password, new_password);
@@ -44,10 +33,6 @@ const userController = {
     });
   }),
 
-  /**
-   * PUT /api/users/avatar
-   * Update avatar URL user
-   */
   updateAvatar: asyncHandler(async (req, res) => {
     const { avatar_url } = req.body;
     const data = await userService.updateAvatar(req.user.userId, avatar_url);
@@ -59,10 +44,6 @@ const userController = {
     });
   }),
 
-  /**
-   * POST /api/users/avatar/upload
-   * Upload file avatar dan perbarui profil user
-   */
   uploadAvatar: asyncHandler(async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
@@ -82,10 +63,6 @@ const userController = {
     });
   }),
 
-  /**
-   * PUT /api/users/2fa
-   * Toggle pengaturan 2FA
-   */
   toggle2fa: asyncHandler(async (req, res) => {
     const { enabled } = req.body;
     const data = await userService.toggle2fa(req.user.userId, enabled);

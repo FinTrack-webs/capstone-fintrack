@@ -2,10 +2,7 @@ const analyticsService = require('../services/analyticsService');
 const asyncHandler = require('../utils/asyncHelper');
 
 const analyticsController = {
-  /**
-   * GET /api/analytics/monthly-expenses
-   * Mengambil data pengeluaran bulanan
-   */
+
   getMonthlyExpenses: asyncHandler(async (req, res) => {
     const { start_date, end_date } = req.query;
 
@@ -21,10 +18,6 @@ const analyticsController = {
     });
   }),
 
-  /**
-   * GET /api/analytics/income-vs-expense
-   * Mengambil perbandingan pemasukan vs pengeluaran
-   */
   getIncomeVsExpense: asyncHandler(async (req, res) => {
     const { start_date, end_date, period } = req.query;
     const selectedPeriod = period || 'monthly';
@@ -43,10 +36,6 @@ const analyticsController = {
     });
   }),
 
-  /**
-   * GET /api/analytics/expense-distribution
-   * Mengambil distribusi pengeluaran per kategori
-   */
   getExpenseDistribution: asyncHandler(async (req, res) => {
     const { start_date, end_date } = req.query;
 

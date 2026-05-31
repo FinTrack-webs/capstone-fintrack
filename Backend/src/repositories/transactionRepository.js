@@ -4,7 +4,7 @@ const transactionRepository = {
   /**
    * Mengambil semua transaksi milik user tertentu dengan filter dan paginasi
    * @param {string} userId
-   * @param {object} filters - Opsional: { account_type, classification_status, search, category_id, type, status, start_date, end_date, page, limit }
+   * @param {object} filters
    * @returns {{ rows: Array, total: number }}
    */
   findAllByUserId: async (userId, filters = {}) => {
@@ -21,31 +21,26 @@ const transactionRepository = {
       values.push(filters.classification_status);
     }
 
-    // Filter pencarian berdasarkan deskripsi
     if (filters.search) {
       conditions.push(`t.description ILIKE $${paramCount++}`);
       values.push(`%${filters.search}%`);
     }
 
-    // Filter berdasarkan category_id
     if (filters.category_id) {
       conditions.push(`t.category_id = $${paramCount++}`);
       values.push(filters.category_id);
     }
 
-    // Filter berdasarkan tipe kategori (income/expense)
     if (filters.type) {
       conditions.push(`c.type = $${paramCount++}`);
       values.push(filters.type);
     }
 
-    // Filter berdasarkan status klasifikasi
     if (filters.status) {
       conditions.push(`t.classification_status = $${paramCount++}`);
       values.push(filters.status);
     }
 
-    // Filter berdasarkan rentang tanggal
     if (filters.start_date) {
       conditions.push(`t.date >= $${paramCount++}`);
       values.push(filters.start_date);
@@ -57,7 +52,7 @@ const transactionRepository = {
 
     const whereClause = conditions.join(' AND ');
 
-    // Query untuk menghitung total data
+
     const countResult = await db.query(
       `SELECT COUNT(*) AS total
        FROM transactions t
@@ -67,7 +62,6 @@ const transactionRepository = {
     );
     const total = parseInt(countResult.rows[0].total, 10);
 
-    // Query data dengan paginasi
     let query = `SELECT t.*, c.name AS category_name, c.type AS category_type
        FROM transactions t
        LEFT JOIN categories c ON t.category_id = c.id
@@ -123,9 +117,6 @@ const transactionRepository = {
     return result.rows;
   },
 
-  /**
-   * Mencari transaksi berdasarkan ID dan user_id (ownership check)
-   */
   findByIdAndUserId: async (id, userId) => {
     const result = await db.query(
       `SELECT t.*, c.name AS category_name, c.type AS category_type
@@ -137,9 +128,6 @@ const transactionRepository = {
     return result.rows[0] || null;
   },
 
-  /**
-   * Membuat transaksi baru
-   */
   create: async (userId, categoryId, amount, description, date, accountType = 'personal') => {
     const result = await db.query(
       `INSERT INTO transactions (user_id, category_id, amount, description, date, classification_status, account_type)
@@ -150,9 +138,6 @@ const transactionRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Update transaksi
-   */
   update: async (id, userId, fields) => {
     const setClauses = [];
     const values = [];
@@ -181,9 +166,6 @@ const transactionRepository = {
     return result.rows[0] || null;
   },
 
-  /**
-   * Hapus transaksi
-   */
   delete: async (id, userId) => {
     const result = await db.query(
       'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING *',

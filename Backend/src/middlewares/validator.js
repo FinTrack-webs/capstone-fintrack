@@ -14,7 +14,6 @@ const validate = (schema, source = 'body') => {
       });
     }
 
-    // Replace request source dengan data yang sudah divalidasi dan di-strip
     req[source] = value;
     next();
   };

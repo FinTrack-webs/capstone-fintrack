@@ -7,7 +7,6 @@ const errorHandler = (err, req, res, next) => {
     method: req.method,
   });
 
-  // Joi Validation Error
   if (err.isJoi) {
     return res.status(400).json({
       status: 'error',
@@ -16,7 +15,6 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Custom error dengan status code
   const statusCode = err.statusCode || 500;
   const message = err.statusCode ? err.message : 'Terjadi kesalahan pada server';
 

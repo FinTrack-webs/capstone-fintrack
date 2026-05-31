@@ -37,7 +37,8 @@ const authService = {
 
     return {
       email: user.email,
-      requires_email_verification: true
+      requires_email_verification: true,
+      otp_code: (process.env.NODE_ENV !== 'production' && user.email.endsWith('@fintrack.test')) ? otpCode : undefined
     };
   },
 
@@ -97,7 +98,8 @@ const authService = {
 
     return {
       email: user.email,
-      message: 'Kode OTP baru telah dikirim'
+      message: 'Kode OTP baru telah dikirim',
+      otp_code: (process.env.NODE_ENV !== 'production' && user.email.endsWith('@fintrack.test')) ? otpCode : undefined
     };
   },
 
@@ -148,6 +150,7 @@ const authService = {
       return {
         requires_2fa: true,
         email: user.email,
+        otp_code: (process.env.NODE_ENV !== 'production' && user.email.endsWith('@fintrack.test')) ? otpCode : undefined
       };
     }
 

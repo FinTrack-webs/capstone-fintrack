@@ -39,7 +39,7 @@ const userService = {
    * @param {string} newPassword - Password baru
    */
   changePassword: async (userId, currentPassword, newPassword) => {
-    // Ambil user dengan password_hash untuk verifikasi
+
     const user = await userProfileRepository.findByIdWithPassword(userId);
     if (!user) {
       const error = new Error('User tidak ditemukan');
@@ -47,7 +47,6 @@ const userService = {
       throw error;
     }
 
-    // Verifikasi password saat ini
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) {
       const error = new Error('Password saat ini salah');
@@ -55,7 +54,6 @@ const userService = {
       throw error;
     }
 
-    // Hash password baru dan update
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await userProfileRepository.updatePassword(userId, hashedPassword);
 

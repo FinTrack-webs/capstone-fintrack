@@ -1,7 +1,6 @@
 const logger = require('../utils/logger');
 const categoryRepository = require('../repositories/categoryRepository');
 
-// Keyword mapping ke kategori (mock)
 const KEYWORD_MAP = [
   { keywords: ['makan', 'resto', 'restaurant', 'warung', 'cafe', 'kopi', 'nasi', 'ayam'], categoryName: 'Makanan' },
   { keywords: ['bensin', 'parkir', 'tol', 'grab', 'gojek', 'ojol', 'transport', 'bus', 'kereta'], categoryName: 'Transportasi' },
@@ -18,12 +17,10 @@ const KEYWORD_MAP = [
 
 const FALLBACK_CATEGORY_NAME = 'Lainnya';
 
-// Simple in-memory cache
 let categoryCache = null;
 let cacheTimestamp = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-//ambil daftar kategori dari DB dengan caching sederhana
 const getCategoriesWithCache = async () => {
   const now = Date.now();
 

@@ -52,7 +52,6 @@ const savingsGoalService = {
    * @param {object} data - { name, target_amount, current_amount }
    */
   update: async (userId, goalId, data) => {
-    // Cek kepemilikan
     const existing = await savingsGoalRepository.findByIdAndUserId(goalId, userId);
     if (!existing) {
       const error = new Error('Target tabungan tidak ditemukan');
@@ -70,7 +69,6 @@ const savingsGoalService = {
    * @param {string} goalId
    */
   remove: async (userId, goalId) => {
-    // Cek kepemilikan
     const existing = await savingsGoalRepository.findByIdAndUserId(goalId, userId);
     if (!existing) {
       const error = new Error('Target tabungan tidak ditemukan');

@@ -1,11 +1,5 @@
 const logger = require('../utils/logger');
 
-/**
- * AI Service
- * Menghubungkan backend dengan FinTrack AI API untuk klasifikasi transaksi.
- * Mendukung dual endpoint: /predict/personal dan /predict/business
- */
-
 const FINTRACK_URL = process.env.FINTRACK_API_URL;
 
 const normalizeType = (type) => {
@@ -44,10 +38,6 @@ const CATEGORY_MAP = {
   'Lain-lain': 'Lainnya',
 };
 
-/**
- * Prediksi kategori dari FinTrack AI
- * Return: { predicted_category, confidence_score, mapped_name } atau null jika gagal
- */
 const predictCategory = async (description, transactionType, accountType = 'personal') => {
   if (!FINTRACK_URL) {
     logger.warn('[aiService] FINTRACK_API_URL tidak diset');
@@ -80,9 +70,7 @@ const predictCategory = async (description, transactionType, accountType = 'pers
   }
 };
 
-/**
- * Health check FinTrack AI API
- */
+
 const isAlive = async () => {
   if (!FINTRACK_URL) return false;
   try {
@@ -91,9 +79,6 @@ const isAlive = async () => {
   } catch { return false; }
 };
 
-/**
- * Invalidate cache (retained for backward compatibility)
- */
 const invalidateCache = () => {
   logger.info('[aiService] Cache invalidate dipanggil (noop — cache sudah dihapus)');
 };

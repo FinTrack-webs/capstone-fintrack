@@ -108,9 +108,106 @@
                   "pm.test('Response success', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body.status).to.eql('success');",
-                  "  pm.expect(body.data).to.have.property('id');",
                   "  pm.expect(body.data).to.have.property('email');",
-                  "  pm.collectionVariables.set('userId', body.data.id);",
+                  "  pm.expect(body.data.requires_email_verification).to.be.true;",
+                  "  pm.collectionVariables.set('verificationOtp', body.data.otp_code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Unverified Email (403)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"password123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 Forbidden', () => pm.response.to.have.status(403));",
+                  "pm.test('Error message matches unverified email', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('error');",
+                  "  pm.expect(body.message).to.include('belum diverifikasi');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resend Verification OTP",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/resend-verification-otp",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('OTP Resent Successfully', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data).to.have.property('otp_code');",
+                  "  pm.collectionVariables.set('verificationOtp', body.data.otp_code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/verify-email",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"otp_code\": \"{{verificationOtp}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Email verified successfully', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data.email_verified).to.be.true;",
                   "});"
                 ]
               }
@@ -173,6 +270,7 @@
                   "  pm.expect(body.data).to.have.property('refreshToken');",
                   "  pm.collectionVariables.set('accessToken', body.data.accessToken);",
                   "  pm.collectionVariables.set('refreshToken', body.data.refreshToken);",
+                  "  pm.collectionVariables.set('userId', body.data.user.id);",
                   "  // Simpan copy khusus untuk nanti dipakai saat logout",
                   "  pm.collectionVariables.set('refreshTokenForLogout', body.data.refreshToken);",
                   "});"
@@ -784,7 +882,112 @@
           ]
         },
         {
-          "name": "Toggle 2FA",
+          "name": "Toggle 2FA - Enable (true)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/users/2fa",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"enabled\": true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('2FA is enabled', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data.two_fa_enabled).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with 2FA Challenge",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"password123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Requires 2FA challenge', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data.requires_2fa).to.be.true;",
+                  "  pm.expect(body.data).to.have.property('otp_code');",
+                  "  pm.collectionVariables.set('twoFaOtp', body.data.otp_code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify 2FA",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/verify-2fa",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"otp_code\": \"{{twoFaOtp}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('2FA validation successful', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data).to.have.property('accessToken');",
+                  "  pm.expect(body.data).to.have.property('refreshToken');",
+                  "  pm.collectionVariables.set('accessToken', body.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', body.data.refreshToken);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle 2FA - Disable (false)",
           "request": {
             "method": "PUT",
             "url": "{{baseUrl}}/users/2fa",
@@ -808,7 +1011,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('2FA is disabled', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('success');",
+                  "  pm.expect(body.data.two_fa_enabled).to.be.false;",
+                  "});"
                 ]
               }
             }
