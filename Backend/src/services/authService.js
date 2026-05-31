@@ -105,6 +105,15 @@ const authService = {
       throw error;
     }
 
+    // Verifikasi kedaluwarsa di tingkat JavaScript (kebal terhadap ketidakcocokan zona waktu database)
+    const now = new Date();
+    const expiresAt = new Date(activeOtp.expires_at);
+    if (expiresAt < now) {
+      const error = new Error('Kode OTP sudah kedaluwarsa');
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Hapus OTP setelah sukses verifikasi (supaya sekali pakai/one-time)
     await otpRepository.deleteByUserId(activeOtp.user_id);
 

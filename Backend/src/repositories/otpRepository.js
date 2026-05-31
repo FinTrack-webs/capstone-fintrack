@@ -17,19 +17,13 @@ const otpRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Menemukan kode OTP aktif (belum kedaluwarsa) berdasarkan email dan kode
-   * @param {string} email
-   * @param {string} code
-   */
   findActiveByEmailAndCode: async (email, code) => {
     const result = await db.query(
       `SELECT o.*, u.id as user_id, u.email
        FROM otp_codes o
        JOIN users u ON o.user_id = u.id
        WHERE u.email = $1 
-         AND o.code = $2 
-         AND o.expires_at > NOW()
+         AND o.code = $2
        ORDER BY o.created_at DESC
        LIMIT 1`,
       [email, code]
