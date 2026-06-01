@@ -1,32 +1,24 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const logger = require('./logger');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  port: parseInt(process.env.SMTP_PORT, 10) || 587,
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const mailer = {
   /**
-   * Mengirimkan kode OTP verifikasi 2FA ke email tujuan
+   * Mengirimkan kode OTP verifikasi 2FA ke email tujuan menggunakan Resend SDK
    * @param {string} toEmail
    * @param {string} code
    */
   sendOTP: async (toEmail, code) => {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-      logger.warn(`[MAILER MOCK]: Kredensial SMTP tidak diset!`);
+    if (!process.env.RESEND_API_KEY) {
+      logger.warn(`[MAILER MOCK]: RESEND_API_KEY tidak diset!`);
       logger.warn(`[MAILER MOCK]: Kode OTP Anda untuk ${toEmail} adalah -> [ ${code} ] <-`);
       return true;
     }
 
     try {
-      const info = await transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME || 'FinTrack'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+      const { data, error } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'FinTrack <onboarding@resend.dev>',
         to: toEmail,
         subject: 'FinTrack - Kode Verifikasi OTP 2-Factor Authentication',
         html: `
@@ -44,7 +36,11 @@ const mailer = {
         `,
       });
 
-      logger.info(`[MAILER]: Email OTP sukses dikirim ke ${toEmail} (Id: ${info.messageId})`);
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      logger.info(`[MAILER]: Email OTP sukses dikirim ke ${toEmail} (Id: ${data.id})`);
       return true;
     } catch (err) {
       logger.error(`[MAILER ERROR]: Gagal mengirim email OTP ke ${toEmail}: ${err.message}`);
