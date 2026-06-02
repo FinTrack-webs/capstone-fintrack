@@ -126,4 +126,4 @@ Endpoint yang digunakan meliputi:
 
 ## Author
 
-Tim Pengembang FinTrack
+FinTrack Front-End Nazwa Hilda Syafira
