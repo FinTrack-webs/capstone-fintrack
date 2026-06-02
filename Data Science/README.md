@@ -217,7 +217,8 @@ pip install -r requirements.txt
 
 ## Menjalankan Streamlit
 
-```streamlit run dashboard/dashboard.py```
+```
+streamlit run dashboard/dashboard.py
 ---
 
 ## 👥 Team
