@@ -4,7 +4,7 @@ import {
   Home,
   PlusCircle,
   ReceiptText,
-  Target,
+  Settings,
   UserRound,
 } from "lucide-react";
 import type { AccountType, ApiTransactionType, NavItem } from "@/types/finance";
@@ -12,16 +12,15 @@ import type { AccountType, ApiTransactionType, NavItem } from "@/types/finance";
 export const navItems: NavItem[] = [
   { label: "Beranda", href: "/dashboard", icon: Home },
   { label: "Riwayat", href: "/transaksi", icon: ReceiptText },
-  { label: "Tambah", href: "/tambah-transaksi", icon: PlusCircle },
-  { label: "Target", href: "/target-tabungan", icon: Target },
+  { label: "Tambah", href: "/tambah-pengeluaran", icon: PlusCircle },
   { label: "Insight", href: "/ai-insight", icon: Bot },
   { label: "Akun", href: "/profil", icon: UserRound },
 ];
 
 export const sidebarItems: NavItem[] = [
-  ...navItems.filter((item) => item.label !== "Akun"),
+  ...navItems,
   { label: "Laporan", href: "/laporan", icon: BarChart3 },
-  { label: "Akun", href: "/profil", icon: UserRound },
+  { label: "Pengaturan", href: "/profil/edit", icon: Settings },
 ];
 
 export const accountTypes: Array<{ value: AccountType; label: string; helper: string }> = [
@@ -31,7 +30,8 @@ export const accountTypes: Array<{ value: AccountType; label: string; helper: st
 
 export const apiTransactionTypes: Array<{ value: ApiTransactionType; label: string }> = [
   { value: "debit", label: "Debit" },
-  { value: "credit", label: "Kredit" },
+  { value: "kredit", label: "Kredit" },
+  { value: "transfer", label: "Transfer" },
 ];
 
 export const paymentMethodMap = {
@@ -42,9 +42,19 @@ export const paymentMethodMap = {
     "Mandiri",
   ],
 
-  credit: [
+  kredit: [
     "Visa",
     "Mastercard",
+  ],
+
+  transfer: [
+    "BCA",
+    "BNI",
+    "BRI",
+    "Mandiri",
+    "Gopay",
+    "OVO",
+    "Dana",
   ],
 };
 

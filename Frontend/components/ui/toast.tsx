@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { CheckCircle2, Info, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -20,7 +19,6 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [mounted, setMounted] = useState(false);
 
   const toast = useCallback((nextToast: Omit<Toast, "id">) => {
     const id = Date.now();
@@ -31,45 +29,38 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({ toast }), [toast]);
-  const viewport = (
-    <div className="toast-viewport pointer-events-none flex flex-col items-end gap-3">
-      {toasts.map((item) => {
-        const Icon = item.variant === "info" ? Info : CheckCircle2;
-
-        return (
-          <div
-            key={item.id}
-            className={cn(
-              "glass-panel pointer-events-auto flex w-full items-start gap-3 rounded-card border border-white/50 p-4 shadow-lift dark:border-white/10",
-              item.variant === "info" ? "text-primary dark:text-primary-soft" : "text-secondary",
-            )}
-          >
-            <Icon className="mt-0.5 h-5 w-5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="font-display text-sm font-extrabold">{item.title}</p>
-              {item.description ? <p className="mt-1 text-sm text-foreground/70 dark:text-white/70">{item.description}</p> : null}
-            </div>
-            <button
-              aria-label="Tutup toast"
-              className="rounded-full p-1 text-foreground/60 transition hover:bg-surface-high dark:text-white/60 dark:hover:bg-white/10"
-              onClick={() => setToasts((current) => current.filter((toast) => toast.id !== item.id))}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {mounted ? createPortal(viewport, document.body) : null}
+      <div className="fixed right-4 top-4 z-[90] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3">
+        {toasts.map((item) => {
+          const Icon = item.variant === "info" ? Info : CheckCircle2;
+
+          return (
+            <div
+              key={item.id}
+              className={cn(
+                "glass-panel flex items-start gap-3 rounded-card border border-white/50 p-4 shadow-lift",
+                item.variant === "info" ? "text-primary" : "text-secondary",
+              )}
+            >
+              <Icon className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-sm font-extrabold">{item.title}</p>
+                {item.description ? <p className="mt-1 text-sm text-foreground/70 dark:text-white/70">{item.description}</p> : null}
+              </div>
+              <button
+                aria-label="Tutup toast"
+                className="rounded-full p-1 text-foreground/60 transition hover:bg-surface-high"
+                onClick={() => setToasts((current) => current.filter((toast) => toast.id !== item.id))}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </ToastContext.Provider>
   );
 }

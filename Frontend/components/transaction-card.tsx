@@ -1,17 +1,9 @@
-import { ArrowDownLeft, ArrowUpRight, Pencil, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import type { Transaction } from "@/types/finance";
 import { formatRupiah } from "@/utils/format";
 import { cn } from "@/utils/cn";
 
-export function TransactionCard({
-  transaction,
-  onEdit,
-  onDelete,
-}: {
-  transaction: Transaction;
-  onEdit?: (transaction: Transaction) => void;
-  onDelete?: (transaction: Transaction) => void;
-}) {
+export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const isIncome = transaction.type === "income";
   const Icon = isIncome ? ArrowDownLeft : ArrowUpRight;
   const accountCopy = transaction.accountType === "business" ? "Bisnis" : "Pribadi";
@@ -41,30 +33,6 @@ export function TransactionCard({
         {isIncome ? "+" : "-"}
         {formatRupiah(transaction.amount)}
       </p>
-      {(onEdit || onDelete) && (
-        <div className="flex shrink-0 gap-1">
-          {onEdit && (
-            <button
-              type="button"
-              aria-label="Edit transaksi"
-              onClick={() => onEdit(transaction)}
-              className="grid h-9 w-9 place-items-center rounded-full text-primary transition hover:bg-surface-high dark:text-primary-soft dark:hover:bg-white/10"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              type="button"
-              aria-label="Hapus transaksi"
-              onClick={() => onDelete(transaction)}
-              className="grid h-9 w-9 place-items-center rounded-full text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
     </article>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Bot, CalendarCheck2, PlusCircle, Sparkles, WalletCards } from "lucide-react";
+import { Bot, CalendarCheck2, PlusCircle, ReceiptText, Sparkles, WalletCards } from "lucide-react";
 import { FinanceChart } from "@/components/finance-chart";
 import { MetricCard } from "@/components/metric-card";
 import { TransactionCard } from "@/components/transaction-card";
@@ -58,9 +58,15 @@ export default function DashboardPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild variant="secondary">
-                <Link href="/tambah-transaksi">
+                <Link href="/tambah-pemasukan">
                   <PlusCircle className="h-4 w-4 shrink-0" />
-                  Tambah Transaksi
+                  Tambah Cuan
+                </Link>
+              </Button>
+              <Button asChild className="bg-white/12 text-white shadow-none hover:bg-white/18">
+                <Link href="/tambah-pengeluaran">
+                  <ReceiptText className="h-4 w-4 shrink-0" />
+                  Catat Belanja
                 </Link>
               </Button>
             </div>

@@ -3,11 +3,10 @@ import { BarChart3, Bot, CheckCircle2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardText, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-dvh overflow-hidden bg-gradient-to-br from-[#f8fffc] via-[#eef7f3] to-[#f3f7ff] text-foreground dark:from-[#101418] dark:via-[#101418] dark:to-[#151b21]">
+    <main className="min-h-dvh bg-gradient-to-br from-[#f8fffc] via-[#eef7f3] to-[#f3f7ff] text-foreground overflow-hidden">
       <div className="absolute left-[-200px] top-[120px] h-[200px] w-[300px] rounded-full bg-green-200/40 blur-3xl" />
        <div className="absolute left-[-200px] top-[120px] h-[200px] w-[300px] rounded-full bg-blue-200/40 blur-3xl" />
       <div className="absolute right-[-100px] top-[200px] h-[320px] w-[320px] rounded-full bg-blue-200/40 blur-3xl" />
@@ -23,7 +22,6 @@ export default function LandingPage() {
         />
         </Link>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <Button asChild variant="ghost" size="sm">
             <Link href="/login">Masuk</Link>
           </Button>
@@ -38,7 +36,7 @@ export default function LandingPage() {
           <h1 className="font-display text-5xl font-black leading-[1.04] text-primary dark:text-primary-soft md:text-6xl">
             Kelola Finansial Tanpa Batas
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-foreground/72 dark:text-white/85">
+          <p className="mt-5 max-w-xl text-lg leading-8 text-foreground/72 dark:text-white/72">
             Bikin transaksi dan analisis keuangan UMKM jadi lebih mudah, cepat, dan tanpa ribet.
           </p>
         </div>

@@ -78,7 +78,7 @@ export function toTransaction(transaction: BackendTransaction): Transaction {
     date: String(transaction.date).split("T")[0],
     type,
     accountType: transaction.account_type ?? "personal",
-    transactionType: transaction.transaction_type ?? (type === "income" ? "credit" : "debit"),
+    transactionType: transaction.transaction_type ?? (type === "income" ? "kredit" : "debit"),
     classificationStatus: transaction.classification_status,
     aiConfidence: transaction.ai_confidence == null ? null : Number(transaction.ai_confidence),
   };

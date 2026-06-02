@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Plus, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { navItems, sidebarItems } from "@/constants/mock-data";
 import { cn } from "@/utils/cn";
@@ -11,111 +11,26 @@ import { ProfileAvatar } from "@/components/profile-avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { clearStoredAuth, fintrackApi, getStoredAuth } from "@/utils/api";
-import { useToast } from "@/components/ui/toast";
+import { fintrackApi, getStoredAuth } from "@/utils/api";
 
 const titleByPath: Record<string, string> = {
   "/dashboard": "Beranda",
-  "/tambah-transaksi": "Catat Transaksi",
-  "/tambah-pengeluaran": "Catat Transaksi",
-  "/tambah-pemasukan": "Catat Transaksi",
+  "/tambah-pengeluaran": "Catat Pengeluaran",
+  "/tambah-pemasukan": "Catat Pemasukan",
   "/transaksi": "Riwayat Transaksi",
-  "/target-tabungan": "Target Tabungan",
   "/laporan": "Laporan Keuangan",
   "/ai-insight": "AI Insight",
   "/profil": "Akun Kamu",
-  "/profil/edit": "Akun Kamu",
+  "/profil/edit": "Edit Profil",
 };
-
-function AccountMenu({ profileName, profileAvatar }: { profileName: string; profileAvatar?: string | null }) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [logoutLoading, setLogoutLoading] = useState(false);
-
-  useEffect(() => {
-    function handlePointerDown(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, []);
-
-  async function handleLogout() {
-    const auth = getStoredAuth();
-    setLogoutLoading(true);
-
-    try {
-      if (auth?.refreshToken) {
-        await fintrackApi.logout(auth.refreshToken);
-      }
-    } catch {
-      toast({
-        title: "Sesi lokal ditutup",
-        description: "Logout di server belum merespons, tapi akses di perangkat ini sudah dibersihkan.",
-        variant: "info",
-      });
-    } finally {
-      clearStoredAuth();
-      sessionStorage.clear();
-      router.replace("/login");
-    }
-  }
-
-  return (
-    <div ref={menuRef} className="relative">
-      <button
-        type="button"
-        aria-label="Menu akun"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        className="rounded-full transition active:scale-95 focus-visible:focus-ring"
-      >
-        <ProfileAvatar name={profileName} src={profileAvatar ?? undefined} className="h-12 w-12" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-[calc(100%+.75rem)] z-[70] w-48 rounded-card border border-outline-soft/30 bg-surface-lowest p-2 shadow-lift dark:border-white/10 dark:bg-[#151b21]">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              router.push("/profil");
-            }}
-            className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-sm font-bold text-foreground transition hover:bg-surface-low dark:text-white dark:hover:bg-white/10"
-          >
-            <UserRound className="h-5 w-5 shrink-0 text-primary dark:text-primary-soft" />
-            Akun
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={logoutLoading}
-            className="mt-1 flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60 dark:text-red-300 dark:hover:bg-red-500/10"
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            {logoutLoading ? "Keluar..." : "Keluar"}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const title = titleByPath[pathname] ?? "fintrack";
   const [profileName, setProfileName] = useState("FinTrack");
-  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-
     const auth = getStoredAuth();
     if (!auth) {
       router.replace("/login");
@@ -123,30 +38,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     setProfileName(auth.user.email);
-    const loadProfile = () => {
-      fintrackApi
-        .profile()
-        .then((response) => {
-          if (cancelled) return;
-
-          setProfileName(response.data.full_name || response.data.email);
-          setProfileAvatar(response.data.avatar_url ?? null);
-        })
-        .catch(() => {
-          if (cancelled) return;
-
-          setProfileName(auth.user.email);
-          setProfileAvatar(null);
-        });
-    };
-
-    loadProfile();
-    window.addEventListener("fintrack-profile-updated", loadProfile);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("fintrack-profile-updated", loadProfile);
-    };
+    fintrackApi
+      .profile()
+      .then((response) => setProfileName(response.data.full_name || response.data.email))
+      .catch(() => setProfileName(auth.user.email));
   }, [router]);
 
   return (
@@ -164,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   <button
     aria-label="Kembali"
     className="grid h-10 w-10 place-items-center rounded-full"
-    onClick={() => router.push("/dashboard")}
+    onClick={() => router.back()}
   >
     <ArrowLeft className="h-5 w-5" />
   </button>
@@ -204,16 +99,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             aria-label="Kembali"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-primary transition hover:bg-surface-high active:scale-95 dark:text-primary-soft"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.back()}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="truncate font-display text-xl font-extrabold text-primary dark:text-primary-soft">{title}</h1>
         </div>
-        <AccountMenu profileName={profileName} profileAvatar={profileAvatar} />
+        <div
+       onClick={() => router.push("/profil")}
+       className="cursor-pointer"
+      >
+      <ProfileAvatar
+       name={profileName}
+       className="h-12 w-12"
+     />
+      </div>
       </header>
 
-      <main className="w-full min-w-0 overflow-x-hidden px-5 pb-40 pt-6 md:ml-64 md:w-[calc(100%-16rem)] md:px-10 md:py-10">
+      <main className="mx-auto max-w-6xl overflow-x-hidden px-5 pb-40 pt-6 md:ml-64 md:px-10 md:py-10">
         <div className="mb-6 hidden items-center justify-between md:flex">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground/60 dark:text-white/60">fintrack</p>
@@ -221,19 +124,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <ThemeToggle />
-            <AccountMenu profileName={profileName} profileAvatar={profileAvatar} />
+            <ProfileAvatar name={profileName} className="h-12 w-12" />
           </div>
         </div>
-        <motion.div className="w-full min-w-0" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
           {children}
         </motion.div>
       </main>
 
       <nav className="safe-bottom fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-outline-soft/20 bg-surface/80 px-4 pt-2 shadow-nav backdrop-blur-xl dark:bg-[#101418]/80 md:hidden">
         {navItems.map((item) => {
-          const active =
-            pathname === item.href ||
-            (item.href === "/tambah-transaksi" && (pathname === "/tambah-pengeluaran" || pathname === "/tambah-pemasukan"));
+          const active = pathname === item.href || (item.href === "/tambah-pengeluaran" && pathname === "/tambah-pemasukan");
           const Icon = item.icon;
 
           return (
@@ -258,7 +159,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         aria-label="Tambah transaksi"
         className="fixed bottom-28 right-5 z-40 h-14 w-14 rounded-full p-0 md:bottom-8"
       >
-        <Link href="/tambah-transaksi">
+        <Link href="/tambah-pengeluaran">
           <Plus className="h-6 w-6" />
         </Link>
       </Button>

@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bot, ChevronUp, Edit3, PiggyBank, Save, ShieldCheck, WalletCards } from "lucide-react";
+import { Bot, CalendarDays, ChevronUp, Edit3, PiggyBank, Save, ShieldCheck, WalletCards } from "lucide-react";
 import { motion } from "framer-motion";
 import type { AccountType, ApiTransactionType, Category, TransactionType } from "@/types/finance";
 import { Button } from "@/components/ui/button";
 import { Card, CardText, CardTitle } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Textarea } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Input, Textarea } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/utils/cn";
 import {
@@ -19,15 +17,14 @@ import {
 import { fintrackApi } from "@/utils/api";
 
 type TransactionFormProps = {
-  type?: TransactionType;
+  type: TransactionType;
   categories: Category[];
 };
 
-export function TransactionForm({ type = "expense", categories }: TransactionFormProps) {
-  const [transactionKind, setTransactionKind] = useState<TransactionType>(type);
+export function TransactionForm({ type, categories }: TransactionFormProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | "ai">("ai");
   const [accountType, setAccountType] = useState<AccountType>("personal");
-  const [transactionType, setTransactionType] = useState<ApiTransactionType>(type === "income" ? "credit" : "debit");
+  const [transactionType, setTransactionType] = useState<ApiTransactionType>(type === "income" ? "kredit" : "debit");
   const [paymentMethod, setPaymentMethod] = useState("BCA");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -35,27 +32,16 @@ export function TransactionForm({ type = "expense", categories }: TransactionFor
   const [prediction, setPrediction] = useState<{ predicted: string; mapped: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const isIncome = transactionKind === "income";
-  const visibleCategories = categories.filter((category) => category.type === transactionKind);
-  const selectedCategoryData = visibleCategories.find((category) => category.id === selectedCategory);
+  const isIncome = type === "income";
+  const selectedCategoryData = categories.find((category) => category.id === selectedCategory);
   const previewCategory = selectedCategoryData?.apiName ?? prediction?.predicted ?? "Menunggu deskripsi";
   const mappedCategory = selectedCategoryData?.label ?? prediction?.mapped ?? "Prediksi AI";
-  const paymentMethodOptions = (paymentMethodMap[transactionType] ?? []).map((method) => ({
-    value: method,
-    label: method,
-  }));
 
   useEffect(() => {
   setPaymentMethod(
     paymentMethodMap[transactionType]?.[0] ?? ""
   );
 }, [transactionType]);
-
-  useEffect(() => {
-    setSelectedCategory("ai");
-    setTransactionType(transactionKind === "income" ? "credit" : "debit");
-    setPrediction(null);
-  }, [transactionKind]);
 
   useEffect(() => {
     if (selectedCategory !== "ai" || description.trim().length < 3) {
@@ -118,34 +104,11 @@ export function TransactionForm({ type = "expense", categories }: TransactionFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-7">
-      <p className="text-base text-foreground/76 dark:text-white/85">
+      <p className="text-base text-foreground/76 dark:text-white/72">
         {isIncome
           ? "Mantap, pemasukan baru masuk nih. Catat biar arus kas makin kebaca!"
           : "Biar makin hemat, catat detailnya. Kalau kategori dikosongkan, AI bakal bantu nebak."}
       </p>
-
-      <Card>
-        <CardTitle>Jenis Transaksi</CardTitle>
-        <CardText className="mt-1">Pilih arus duitnya dulu, nanti kategori dan AI ikut menyesuaikan.</CardText>
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          {[
-            { value: "income" as const, label: "Pemasukan" },
-            { value: "expense" as const, label: "Pengeluaran" },
-          ].map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setTransactionKind(item.value)}
-              className={cn(
-                "rounded-full bg-surface-low px-4 py-3 text-center text-sm font-bold transition dark:bg-white/10",
-                transactionKind === item.value && "bg-primary text-white shadow-lift",
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </Card>
 
       <Card className="group relative overflow-hidden">
         <div className="absolute right-5 top-7 text-surface-highest transition group-hover:text-outline-soft/70">
@@ -187,14 +150,14 @@ export function TransactionForm({ type = "expense", categories }: TransactionFor
             </button>
           </div>
           <div className="mt-5 grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-3">
-            {visibleCategories.map((category) => {
+            {categories.map((category) => {
               const Icon = category.icon;
               const active = selectedCategory === category.id;
 
               return (
                 <motion.button
                   type="button"
-                  key={category.id}
+                  key={category.label}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedCategory(category.id)}
                   className={cn(
@@ -235,7 +198,10 @@ export function TransactionForm({ type = "expense", categories }: TransactionFor
 
           <Card>
             <label className="mb-3 block text-xs font-bold tracking-[0.05em] text-foreground/70 dark:text-white/70">Tanggal Transaksi</label>
-            <DatePicker value={date} onChange={setDate} placeholder="Tanggal transaksi" />
+            <div className="relative">
+              <CalendarDays className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-outline" />
+              <Input className="pl-14" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            </div>
           </Card>
 
           <Card>
@@ -274,12 +240,24 @@ export function TransactionForm({ type = "expense", categories }: TransactionFor
               </button>
             ))}
           </div>
-          <Select
-            value={paymentMethod}
-            options={paymentMethodOptions}
-            onChange={setPaymentMethod}
-            className="mt-4"
-          />
+          <select
+  value={paymentMethod}
+  onChange={(e) =>
+    setPaymentMethod(e.target.value)
+  }
+  className="mt-4 h-14 w-full rounded-full border border-outline-soft/40 bg-surface-low"
+>
+  {paymentMethodMap[transactionType]?.map(
+    (method) => (
+      <option
+        key={method}
+        value={method}
+      >
+        {method}
+      </option>
+    )
+  )}
+</select>
         </Card>
 
         <Card className="bg-secondary-soft/75 text-secondary">

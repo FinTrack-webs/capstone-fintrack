@@ -16,7 +16,7 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-[80] grid place-items-center bg-primary/35 p-5 backdrop-blur-sm">
-      <div className={cn("w-full max-w-md overflow-visible rounded-card bg-surface-lowest p-6 shadow-lift dark:bg-[#151b21]")}>
+      <div className={cn("w-full max-w-md rounded-card bg-surface-lowest p-6 shadow-lift dark:bg-[#151b21]")}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-xl font-extrabold text-primary dark:text-primary-soft">{title}</h2>
           <Button aria-label="Tutup modal" size="icon" variant="ghost" onClick={onClose}>

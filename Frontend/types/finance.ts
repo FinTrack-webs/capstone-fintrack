@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 
 export type TransactionType = "income" | "expense";
 export type AccountType = "personal" | "business";
-export type ApiTransactionType = "debit" | "credit";
+export type ApiTransactionType = "debit" | "kredit" | "transfer";
 export type ClassificationStatus = "pending" | "classified" | "failed";
 
 export type Transaction = {
@@ -108,20 +108,4 @@ export type FinancialHealthScore = {
   score: number;
   total_income: number;
   total_expense: number;
-};
-
-export type SavingsGoal = {
-  id: string;
-  name: string;
-  target_amount: number;
-  current_amount: number;
-  progress_percentage?: number;
-  created_at?: string;
-  updated_at?: string;
-};
-
-export type ExpenseDistribution = {
-  category_name: string;
-  total: number;
-  percentage: number;
 };
