@@ -1,17 +1,3 @@
-## SETUP VIRTUAL ENVIORMENT
-
-```
-cd capstone project
-py -m venv .env
-.env\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-
-## Menjalankan Streamlit
-
-```streamlit run dashboard/dashboard.py```
-
 # FinTrack - Data Preprocessing and Exploratory Data Analysis
 
 ## 📌 Project Overview
@@ -40,7 +26,15 @@ Berisi riwayat transaksi keuangan pribadi dengan atribut:
 
 ### 2. Business Finance Dataset
 
-Berisi riwayat transaksi keuangan bisnis dengan atribut yang sama.
+Berisi riwayat transaksi keuangan bisnis dengan atribut:
+* transaction_id
+* transaction_date
+* description
+* category
+* transaction_type
+* amount
+* payment_method
+
 
 Dataset  mengandung berbagai bentuk *noise* seperti:
 
