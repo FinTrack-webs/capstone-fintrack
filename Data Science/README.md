@@ -1,10 +1,8 @@
-# FinTrack - Data Preprocessing and Exploratory Data Analysis
+# FinTrack - DS
 
 ## 📌 Project Overview
 
-FinTrack merupakan proyek analisis data keuangan yang bertujuan untuk melakukan proses data preprocessing, eksplorasi data, dan analisis pola transaksi pada data keuangan pribadi (*Personal Finance*) dan bisnis (*Business Finance*).
-
-Proyek ini berfokus pada peningkatan kualitas data melalui proses *data cleaning* serta menghasilkan insight yang dapat digunakan untuk memahami kondisi keuangan pengguna dan bisnis selama dua tahun terakhir.
+FinTrack merupakan platform manajemen keuangan yang membantu pengguna memantau dan mengelola transaksi keuangan pribadi maupun bisnis. Dalam proyek ini, tim Data Science berperan melakukan data preprocessing, feature engineering, dan exploratory data analysis (EDA) untuk mengubah data transaksi mentah menjadi dataset yang berkualitas serta menghasilkan insight yang mendukung pengambilan keputusan berbasis data.
 
 ---
 
