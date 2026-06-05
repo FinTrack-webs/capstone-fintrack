@@ -10,8 +10,6 @@ const run = async () => {
     
     await db.query(sql);
     console.log('[migration]: Tabel otp_codes berhasil dibuat / dimigrasikan!');
-    
-    // Sukses
     process.exit(0);
   } catch (err) {
     console.error('[migration]: Gagal menjalankan migrasi:', err.message);

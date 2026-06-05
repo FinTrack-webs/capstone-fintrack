@@ -32,14 +32,3 @@ dist/
 build/
 .temp/
 .cache/
-
-# agent rules
-agent.md
-GEMINI.md
-
-#progress
-progress.md
-developer.md
-DEPLOY.md
-
-.nvmrc

@@ -1,10 +1,3 @@
-/**
- * Database Seeder — Kategori Default
- * Jalankan: npm run seed
- *
- * Script ini memasukkan kategori default ke tabel `categories`.
- * Menggunakan ON CONFLICT DO NOTHING agar aman dijalankan berulang kali.
- */
 require('dotenv').config();
 const { Pool } = require('pg');
 const logger = require('../utils/logger');
@@ -39,9 +32,6 @@ const seed = async () => {
   try {
     logger.info('Memulai seeding kategori default...');
 
-    // Gunakan UNIQUE constraint pada name+type untuk ON CONFLICT
-    // Karena tabel categories tidak punya UNIQUE constraint pada (name, type),
-    // kita cek manual satu per satu
     let inserted = 0;
     let skipped = 0;
 

@@ -1,9 +1,5 @@
--- FinTrack Database Schema --
-
--- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tabel Users
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -11,7 +7,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tabel Categories
 CREATE TABLE IF NOT EXISTS categories (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -20,7 +15,6 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tabel Transactions
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -28,17 +22,13 @@ CREATE TABLE IF NOT EXISTS transactions (
   amount BIGINT NOT NULL CHECK (amount > 0),
   description TEXT NOT NULL,
   date DATE NOT NULL,
-  classification_status VARCHAR(20) DEFAULT 'pending', -- pending, classified, failed
+  classification_status VARCHAR(20) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Indexes
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
 
--- ================================================
--- Seed Data: Default Categories
--- ================================================
 INSERT INTO categories (name, type) VALUES
   ('Gaji', 'income'),
   ('Freelance', 'income'),
